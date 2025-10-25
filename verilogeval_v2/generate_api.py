@@ -7,6 +7,8 @@ from tqdm.asyncio import tqdm as async_tqdm
 from openai import OpenAI
 from dataclasses import dataclass
 
+# 设置工作目录为当前文件所在目录
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 @dataclass
 class Problem:
@@ -113,30 +115,20 @@ async def main(config):
     )
 
     # 保存结果
-    with open(config["output_file"], "w", encoding="utf-8") as f:
+    output_file_name = f"pass{config['k']}_{config['model_name']}.json"
+    with open(output_file_name, "w", encoding="utf-8") as f:
         json.dump(all_results, f, ensure_ascii=False, indent=4)
 
 if __name__ == "__main__":
-    # 配置参数
-    config = {
-        "api_key": "sk-xxx",
-        "base_url": "https://api.deepseek.com",
-        "model_name": "deepseek-chat",
-        "prompt_file": "problems_rtllm.jsonl",
-        "max_concurrent": 20,
-        "k": 5,
-        "output_file": "pass5_ds_v3.json",
-    }
 
-    # config = {
-    #     "api_key": "sk-xxx",
-    #     "base_url": "https://api.openai-proxy.org/v1",
-    #     "model_name": "gpt-4o-mini",
-    #     "prompt_file": "problems_rtllm.jsonl",
-    #     "max_concurrent": 20,
-    #     "k": 1,
-    #     "output_file": "pass1_gpt_4o.json",
-    # }
+    config = {
+        "api_key": "sk-",
+        "base_url": "https://api.openai-proxy.org/v1",
+        "model_name": "gpt-3.5-turbo",
+        "prompt_file": "problems_verilogeval_v2.jsonl",
+        "max_concurrent": 20,
+        "k": 1,
+    }
 
     asyncio.run(main(config))
 

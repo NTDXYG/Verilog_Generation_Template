@@ -1,0 +1,506 @@
+[
+    {
+        "module_name": "parity_8bit",
+        "solutions": [
+            {
+                "solution": "module parity_8bit (\n    input [7:0] in,\n    output out\n);\n\nreg [2:0] temp;\n\nalways @* begin\n    temp = in[7] + in[6] + in[5] + in[4] + in[3] + in[2] + in[1] + in[0];\n    if (temp % 2 == 1)\n        out = 1;\n    else\n        out = 0;\nend\n\nendmodule",
+                "pass": "编译失败: temp.v:11: error: out is not a valid l-value in parity_8bit_tb.uut.\ntemp.v:3:      : out is declared here as wire.\ntemp.v:13: error: out is not a valid l-value in parity_8bit_tb.uut.\ntemp.v:3:      : out is declared here as wire.\n2 error(s) during elaboration."
+            }
+        ]
+    },
+    {
+        "module_name": "mux4to1",
+        "solutions": [
+            {
+                "solution": "module mux4to1 (\n    input [3:0] in,\n    input [1:0] sel,\n    output out\n);\n\nwire w1, w2, w3;\n\nassign w1 = (sel[1] & sel[0] & in[3]);\nassign w2 = (sel[1] & ~sel[0] & in[2]);\nassign w3 = (~sel[1] & sel[0] & in[1]);\n\nassign out = w1 | w2 | w3 | (~sel[1] & ~sel[0] & in[0]);\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "majority",
+        "solutions": [
+            {
+                "solution": "module majority (\n    input a, b, c,\n    output out\n);\n\nassign out = (a & b) | (a & c) | (b & c);\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "bin_to_gray",
+        "solutions": [
+            {
+                "solution": "module bin_to_gray (\n    input [3:0] binary,\n    output [3:0] gray\n);\n\nassign gray[0] = binary[0] ^ binary[1];\nassign gray[1] = binary[1] ^ binary[2];\nassign gray[2] = binary[2] ^ binary[3];\nassign gray[3] = binary[3];\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "eq_comparator",
+        "solutions": [
+            {
+                "solution": "module eq_comparator (\n    input [3:0] a,\n    input [3:0] b,\n    output equal\n);\n\nassign equal = (a == b) ? 1 : 0;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "decoder_2to4",
+        "solutions": [
+            {
+                "solution": "module decoder_2to4 (\n    input [1:0] in,\n    output [3:0] out\n);\n\nassign out[0] = (in == 2'b00) ? 1'b1 : 1'b0;\nassign out[1] = (in == 2'b01) ? 1'b1 : 1'b0;\nassign out[2] = (in == 2'b10) ? 1'b1 : 1'b0;\nassign out[3] = (in == 2'b11) ? 1'b1 : 1'b0;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "seven_segment_decoder",
+        "solutions": [
+            {
+                "solution": "module seven_segment_decoder (\n    input [3:0] digit,\n    output reg [6:0] segments\n);\n\nalways @(*)\nbegin\n    case(digit)\n        4'b0000: segments = 7'b1000000; // 0\n        4'b0001: segments = 7'b1111001; // 1\n        4'b0010: segments = 7'b0100100; // 2\n        4'b0011: segments = 7'b0110000; // 3\n        4'b0100: segments = 7'b0011001; // 4\n        4'b0101: segments = 7'b0010010; // 5\n        4'b0110: segments = 7'b0000010; // 6\n        4'b0111: segments = 7'b1111000; // 7\n        4'b1000: segments = 7'b0000000; // 8\n        4'b1001: segments = 7'b0010000; // 9\n        default: segments = 7'b1111111; // Display nothing\n    endcase\nend\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "priority_encoder",
+        "solutions": [
+            {
+                "solution": "module priority_encoder (\n    input [3:0] in,\n    output reg [1:0] code\n);\nalways @* begin\n    case(in)\n        4'b0001: code = 2'b00;\n        4'b0010: code = 2'b01;\n        4'b0100: code = 2'b10;\n        4'b1000: code = 2'b11;\n        default: code = 2'b00;\n    endcase\nend\nendmodule",
+                "pass": "测试失败: 未通过测试用例"
+            }
+        ]
+    },
+    {
+        "module_name": "fsm_3state",
+        "solutions": [
+            {
+                "solution": "module fsm_3state (\n    input clk, reset,\n    output [1:0] state\n);\n\nreg [1:0] state_reg;\nalways @(posedge clk or posedge reset) begin\n    if (reset) begin\n        state_reg <= 2'b00;\n    end else begin\n        case (state_reg)\n            2'b00: state_reg <= 2'b01;\n            2'b01: state_reg <= 2'b10;\n            2'b10: state_reg <= 2'b00;\n        endcase\n    end\nend\n\nassign state = state_reg;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "traffic_light",
+        "solutions": [
+            {
+                "solution": "module traffic_light (\n    input clk, reset,\n    output reg [2:0] light\n);\n\nparameter RED = 3'b100;\nparameter YELLOW = 3'b010;\nparameter GREEN = 3'b001;\n\nreg [1:0] state;\n\nalways @ (posedge clk or posedge reset) begin\n    if (reset) begin\n        state <= 2'b00;\n        light <= RED;\n    end else begin\n        case (state)\n            2'b00: begin\n                state <= 2'b01;\n                light <= RED;\n            end\n            2'b01: begin\n                state <= 2'b10;\n                light <= YELLOW;\n            end\n            2'b10: begin\n                state <= 2'b00;\n                light <= GREEN;\n            end\n        endcase\n    end\nend\n\nendmodule",
+                "pass": "测试失败: 未通过测试用例"
+            }
+        ]
+    },
+    {
+        "module_name": "elevator_controller",
+        "solutions": [
+            {
+                "solution": "module elevator_controller (\n    input clk, reset,\n    input up_request, down_request,\n    output reg [1:0] state\n);\n\nparameter IDLE = 2'b00;\nparameter MOVING_UP = 2'b01;\nparameter MOVING_DOWN = 2'b10;\n\nalways @ (posedge clk or posedge reset) begin\n    if (reset) begin\n        state <= IDLE;\n    end else begin\n        case (state)\n            IDLE: begin\n                if (up_request) begin\n                    state <= MOVING_UP;\n                end else if (down_request) begin\n                    state <= MOVING_DOWN;\n                end\n            end\n            MOVING_UP: begin\n                if (!up_request) begin\n                    state <= IDLE;\n                end\n            end\n            MOVING_DOWN: begin\n                if (!down_request) begin\n                    state <= IDLE;\n                end\n            end\n        endcase\n    end\nend\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "vending_machine",
+        "solutions": [
+            {
+                "solution": "module vending_machine (\n    input clk, reset,\n    input coin_inserted, item_selected,\n    output reg [1:0] state\n);\n\nparameter IDLE = 2'b00;\nparameter COLLECTING_COINS = 2'b01;\nparameter DISPENSING_ITEM = 2'b10;\n\nalways @(posedge clk or posedge reset) begin\n    if (reset) begin\n        state <= IDLE;\n    end else begin\n        case(state)\n            IDLE: begin\n                if (coin_inserted) begin\n                    state <= COLLECTING_COINS;\n                end else if (item_selected) begin\n                    state <= DISPENSING_ITEM;\n                end\n            end\n            COLLECTING_COINS: begin\n                if (coin_inserted) begin\n                    state <= COLLECTING_COINS;\n                end else begin\n                    state <= IDLE;\n                end\n            end\n            DISPENSING_ITEM: begin\n                state <= IDLE;\n            end\n        endcase\n    end\nend\n\nendmodule",
+                "pass": "测试失败: 未通过测试用例"
+            }
+        ]
+    },
+    {
+        "module_name": "int_sqrt",
+        "solutions": [
+            {
+                "solution": "module int_sqrt (\n    input signed [15:0] in_0,\n    output signed [7:0] out\n);\n\nreg signed [7:0] result;\n\nalways @* begin\n    if (in_0 <= 0) begin\n        result = 0;\n    end else begin\n        result = 0;\n        for (int i=7; i>=0; i=i-1) begin\n            result[i] = result[i] | (in_0[15:0] >= ((result << 1) | 1) << i);\n        end\n    end\nend\n\nassign out = result;\n\nendmodule",
+                "pass": "测试失败: 未通过测试用例"
+            }
+        ]
+    },
+    {
+        "module_name": "fibonacci",
+        "solutions": [
+            {
+                "solution": "module fibonacci (\n    input signed [7:0] in_0,\n    output signed [15:0] out\n);\n\nreg signed [15:0] a, b, next;\ninteger i;\n\nalways @(*) begin\n    if (in_0 <= 0) begin\n        out = 0;\n    end else if (in_0 == 1) begin\n        out = 1;\n    end else begin\n        a = 0;\n        b = 1;\n        for (i = 2; i <= in_0; i = i + 1) begin\n            next = a + b;\n            a = b;\n            b = next;\n        end\n        out = b;\n    end\nend\n\nendmodule",
+                "pass": "编译失败: temp.v:11: error: out is not a valid l-value in fibonacci_tb.dut.\ntemp.v:3:      : out is declared here as wire.\ntemp.v:13: error: out is not a valid l-value in fibonacci_tb.dut.\ntemp.v:3:      : out is declared here as wire.\ntemp.v:22: error: out is not a valid l-value in fibonacci_tb.dut.\ntemp.v:3:      : out is declared here as wire.\n3 error(s) during elaboration."
+            }
+        ]
+    },
+    {
+        "module_name": "mod_exp",
+        "solutions": [
+            {
+                "solution": "module mod_exp (\n    input signed [7:0] in_0,\n    input signed [7:0] in_1,\n    input signed [7:0] in_2,\n    output signed [7:0] out\n);\n\nreg signed [7:0] result;\n\nalways @(*) begin\n    result = 1;\n    for (int i = 0; i < in_1; i = i + 1) begin\n        result = (result * in_0) % in_2;\n    end\nend\n\nassign out = result;\n\nendmodule",
+                "pass": "测试失败: 未通过测试用例"
+            }
+        ]
+    },
+    {
+        "module_name": "power",
+        "solutions": [
+            {
+                "solution": "module power (\n    input signed [7:0] in_0,\n    input signed [3:0] in_1,\n    output signed [15:0] out\n);\n    \n    reg signed [15:0] result;\n    \n    always @* begin\n        result = $signed($signed(in_0) ** in_1);\n    end\n    \n    assign out = result;\n    \nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "log2_int",
+        "solutions": [
+            {
+                "solution": "module log2_int (\n    input signed [15:0] in_0,\n    output signed [7:0] out\n);\n\nreg [7:0] count;\nreg [15:0] temp;\n\nalways @(*) begin\n    if (in_0 <= 0) begin\n        out = 8'b00000000;\n    end else begin\n        temp = in_0;\n        count = 0;\n        while (temp > 1) begin\n            temp = temp >> 1;\n            count = count + 1;\n        end\n        out = count;\n    end\nend\n\nendmodule",
+                "pass": "编译失败: temp.v:11: error: out is not a valid l-value in log2_int_tb.dut.\ntemp.v:3:      : out is declared here as wire.\ntemp.v:19: error: out is not a valid l-value in log2_int_tb.dut.\ntemp.v:3:      : out is declared here as wire.\n2 error(s) during elaboration."
+            }
+        ]
+    },
+    {
+        "module_name": "add_8bit",
+        "solutions": [
+            {
+                "solution": "module add_8bit (\n    input signed [7:0] a, b,\n    output signed [8:0] out\n);\n\nreg signed [8:0] sum;\n\nalways @* begin\n    sum = a + b;\nend\n\nassign out = sum;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "mult_4bit",
+        "solutions": [
+            {
+                "solution": "module mult_4bit (\n    input [3:0] a, b,\n    output [7:0] out\n);\n\nreg [7:0] result;\n\nalways @(*) begin\n    result = a * b;\nend\n\nassign out = result;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "abs_diff",
+        "solutions": [
+            {
+                "solution": "module abs_diff (\n    input signed [7:0] a, b,\n    output [7:0] out\n);\n\nreg [7:0] diff;\n\nalways @(*) begin\n    if (a >= b) begin\n        diff = a - b;\n    end else begin\n        diff = b - a;\n    end\nend\n\nassign out = diff;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "modulo_op",
+        "solutions": [
+            {
+                "solution": "module modulo_op (\n    input [7:0] a,\n    input [7:0] b,\n    output [7:0] remainder\n);\n\nreg [7:0] temp;\n\nalways @(*) begin\n    temp = a % b;\n    if (temp < 0)\n        remainder = temp + b;\n    else\n        remainder = temp;\nend\n\nendmodule",
+                "pass": "编译失败: temp.v:12: error: remainder is not a valid l-value in modulo_op_tb.uut.\ntemp.v:4:      : remainder is declared here as wire.\ntemp.v:14: error: remainder is not a valid l-value in modulo_op_tb.uut.\ntemp.v:4:      : remainder is declared here as wire.\n2 error(s) during elaboration."
+            }
+        ]
+    },
+    {
+        "module_name": "subtract_8bit",
+        "solutions": [
+            {
+                "solution": "module subtract_8bit (\n    input signed [7:0] a, b,\n    output signed [8:0] diff\n);\n\nreg signed [8:0] result;\n\nalways @* begin\n    result = a - b;\nend\n\nassign diff = result;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "bitwise_ops",
+        "solutions": [
+            {
+                "solution": "module bitwise_ops (\n    input [7:0] a, b,\n    output [7:0] and_out,\n    output [7:0] or_out,\n    output [7:0] xor_out\n);\n\nassign and_out = a & b;\nassign or_out = a | b;\nassign xor_out = a ^ b;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "left_shift",
+        "solutions": [
+            {
+                "solution": "module left_shift (\n    input [7:0] in,\n    input [2:0] shift,\n    output [7:0] out\n);\n\n    assign out = (shift == 0) ? in : (in << shift);\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "bitwise_not",
+        "solutions": [
+            {
+                "solution": "module bitwise_not (\n    input [7:0] in,\n    output [7:0] out\n);\n  \n  assign out = ~in;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "rotate_left",
+        "solutions": [
+            {
+                "solution": "module rotate_left (\n    input [7:0] in,\n    input [2:0] shift,\n    output [7:0] out\n);\n\nassign out = {in[shift-1:0], in[7:shift]};\nendmodule",
+                "pass": "编译失败: temp.v:7: error: A reference to a wire or reg (`shift') is not allowed in a constant expression.\ntemp.v:7: error: Part select expressions must be constant.\ntemp.v:7:      : This msb expression violates the rule: (shift)-('sd1)\ntemp.v:7: error: A reference to a wire or reg (`shift') is not allowed in a constant expression.\ntemp.v:7: error: Part select expressions must be constant.\ntemp.v:7:      : This lsb expression violates the rule: shift\ntemp.v:7: error: A reference to a wire or reg (`shift') is not allowed in a constant expression.\ntemp.v:7: error: Part select expressions must be constant.\ntemp.v:7:      : This msb expression violates the rule: (shift)-('sd1)\ntemp.v:7: error: A reference to a wire or reg (`shift') is not allowed in a constant expression.\ntemp.v:7: error: Part select expressions must be constant.\ntemp.v:7:      : This lsb expression violates the rule: shift\n8 error(s) during elaboration."
+            }
+        ]
+    },
+    {
+        "module_name": "pipelined_adder",
+        "solutions": [
+            {
+                "solution": "module pipelined_adder (\n    input clk, rst,\n    input [15:0] a, b,\n    output reg [15:0] out\n);\n\nreg [7:0] stage1_out;\nreg [15:0] stage2_out;\n\nalways @(posedge clk or posedge rst) begin\n    if (rst) begin\n        stage1_out <= 8'b0;\n        stage2_out <= 16'b0;\n        out <= 16'b0;\n    end else begin\n        stage1_out <= a[7:0] + b[7:0];\n        stage2_out <= a + b + (stage1_out[7] << 8);\n        out <= stage2_out;\n    end\nend\n\nendmodule",
+                "pass": "测试失败: 未通过测试用例"
+            }
+        ]
+    },
+    {
+        "module_name": "pipelined_multiplier",
+        "solutions": [
+            {
+                "solution": "module pipelined_multiplier (\n    input clk, rst,\n    input [7:0] a, b,\n    output reg [15:0] out\n);\n\nreg [7:0] partial_product;\nreg [15:0] accumulator;\n\nalways @(posedge clk or posedge rst) begin\n    if (rst) begin\n        partial_product <= 8'b0;\n        accumulator <= 16'b0;\n        out <= 16'b0;\n    end else begin\n        case({partial_product[0], a})\n            2'b00: partial_product <= {1'b0, partial_product[7:1]};\n            2'b01: partial_product <= {1'b0, partial_product[7:1]} + b;\n            2'b10: partial_product <= {1'b0, partial_product[7:1]} - b;\n            2'b11: partial_product <= {1'b1, partial_product[7:1]};\n        endcase\n        \n        case(partial_product[0])\n            1'b0: accumulator <= accumulator + partial_product;\n            1'b1: accumulator <= accumulator - partial_product;\n        endcase\n        \n        out <= accumulator;\n    end\nend\n\nendmodule",
+                "pass": "测试失败: 未通过测试用例"
+            }
+        ]
+    },
+    {
+        "module_name": "pipelined_accumulator",
+        "solutions": [
+            {
+                "solution": "module pipelined_accumulator (\n    input clk, rst,\n    input [7:0] x,\n    output reg [15:0] out\n);\n\nreg [7:0] stage1_out, stage2_out;\n\nalways @(posedge clk) begin\n    if (rst) begin\n        stage1_out <= 8'b0;\n        stage2_out <= 8'b0;\n        out <= 16'b0;\n    end else begin\n        stage1_out <= x + stage1_out;\n        stage2_out <= stage1_out + stage2_out;\n        out <= stage2_out;\n    end\nend\n\nendmodule",
+                "pass": "测试失败: 未通过测试用例"
+            }
+        ]
+    },
+    {
+        "module_name": "pipelined_max_finder",
+        "solutions": [
+            {
+                "solution": "module pipelined_max_finder (\n    input clk, rst,\n    input [7:0] x0,x1,x2,x3,\n    output reg [7:0] max_value\n);\n\nreg [7:0] max_temp;\n\nalways @ (posedge clk or posedge rst) begin\n    if (rst) begin\n        max_value <= 8'b0;\n        max_temp <= 8'b0;\n    end else begin\n        if (x0 > x1)\n            max_temp <= x0;\n        else\n            max_temp <= x1;\n    end\nend\n\nalways @ (posedge clk or posedge rst) begin\n    if (rst) begin\n        max_value <= 8'b0;\n    end else begin\n        if (x2 > x3)\n            max_value <= x2;\n        else\n            max_value <= x3;\n    end\nend\n\nalways @ (posedge clk or posedge rst) begin\n    if (rst) begin\n        max_value <= 8'b0;\n    end else begin\n        if (max_temp > max_value)\n            max_value <= max_temp;\n    end\nend\n\nendmodule",
+                "pass": "测试失败: 未通过测试用例"
+            }
+        ]
+    },
+    {
+        "module_name": "pipelined_fir",
+        "solutions": [
+            {
+                "solution": "module pipelined_fir (\n    input clk, rst,\n    input [7:0] x,\n    output reg [15:0] y\n);\n\nreg [7:0] tap1, tap2, tap3, tap4;\nreg [15:0] acc1, acc2, acc3;\n\nalways @(posedge clk or posedge rst) begin\n    if (rst) begin\n        tap1 <= 8'b0;\n        tap2 <= 8'b0;\n        tap3 <= 8'b0;\n        tap4 <= 8'b0;\n        acc1 <= 16'b0;\n        acc2 <= 16'b0;\n        acc3 <= 16'b0;\n        y <= 16'b0;\n    end else begin\n        tap1 <= x;\n        tap2 <= tap1;\n        tap3 <= tap2;\n        tap4 <= tap3;\n        \n        acc1 <= tap1 * 8'b0010 + tap2 * 8'b0011;\n        acc2 <= tap3 * 8'b0100 + tap4 * 8'b0101;\n        acc3 <= acc1 + acc2;\n        \n        y <= acc3;\n    end\nend\n\nendmodule",
+                "pass": "测试失败: 未通过测试用例"
+            }
+        ]
+    },
+    {
+        "module_name": "polynomial_1",
+        "solutions": [
+            {
+                "solution": "module polynomial_1 (\n    input signed [7:0] in_0,\n    output signed [15:0] out\n);\n\nreg signed [15:0] y;\n\nalways @* begin\n    y = in_0 * in_0 + 2 * in_0 + 1;\nend\n\nassign out = y;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "polynomial_2",
+        "solutions": [
+            {
+                "solution": "module polynomial_2 (\n    input signed [7:0] in_0,\n    output signed [23:0] out\n);\n\nreg signed [23:0] temp1, temp2;\n\nalways @* begin\n    temp1 = in_0 * in_0 * in_0; // x^3\n    temp2 = 3 * in_0 * in_0; // 3x^2\n    out = temp1 + temp2 + (3 * in_0) + 1; // x^3 + 3x^2 + 3x + 1\nend\n\nendmodule",
+                "pass": "编译失败: temp.v:11: error: out is not a valid l-value in polynomial_2_tb.uut.\ntemp.v:3:      : out is declared here as wire.\n1 error(s) during elaboration."
+            }
+        ]
+    },
+    {
+        "module_name": "polynomial_3",
+        "solutions": [
+            {
+                "solution": "module polynomial_3 (\n    input signed [7:0] in_0,\n    output signed [15:0] out\n);\n\n    assign out = in_0 * in_0 - in_0 - 6;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "polynomial_4",
+        "solutions": [
+            {
+                "solution": "module polynomial_4 (\n    input signed [7:0] in_0,\n    output signed [31:0] out\n);\n\nreg signed [7:0] x;\nreg signed [31:0] y;\n\nalways @(*) begin\n    x = in_0 + 2;\n    y = (x*x) + (x*x) + (x*x);\nend\n\nassign out = y;\n\nendmodule",
+                "pass": "测试失败: 未通过测试用例"
+            }
+        ]
+    },
+    {
+        "module_name": "polynomial_5",
+        "solutions": [
+            {
+                "solution": "module polynomial_5 (\n    input signed [7:0] in_0,\n    input signed [7:0] in_1,\n    output signed [15:0] out\n);\n\nreg signed [15:0] temp1, temp2;\n\nalways @* begin\n    temp1 = (in_0 + in_1) * (in_0 + in_1);\n    temp2 = (in_0 - in_1) * (in_0 - in_1);\n    out = temp1 - temp2;\nend\n\nendmodule",
+                "pass": "编译失败: temp.v:12: error: out is not a valid l-value in polynomial_5_tb.dut.\ntemp.v:4:      : out is declared here as wire.\n1 error(s) during elaboration."
+            }
+        ]
+    },
+    {
+        "module_name": "matrix_vector_mult",
+        "solutions": [
+            {
+                "solution": "module matrix_vector_mult (\n    input signed [15:0] in_0_0, input signed [15:0] in_0_1, input signed [15:0] in_0_2, input signed [15:0] in_0_3, \n    input signed [15:0] in_0_4, input signed [15:0] in_0_5, input signed [15:0] in_0_6, input signed [15:0] in_0_7, \n    input signed [15:0] in_0_8, input signed [15:0] in_0_9, input signed [15:0] in_0_10, input signed [15:0] in_0_11, \n    input signed [15:0] in_0_12, input signed [15:0] in_0_13, input signed [15:0] in_0_14, input signed [15:0] in_0_15, \n    input signed [15:0] in_1_0, input signed [15:0] in_1_1, input signed [15:0] in_1_2, input signed [15:0] in_1_3, \n    output signed [31:0] out_0, output signed [31:0] out_1, output signed [31:0] out_2, output signed [31:0] out_3\n);\n    \n    reg signed [31:0] temp_0, temp_1, temp_2, temp_3;\n    \n    always @* begin\n        temp_0 = in_0_0 * in_1_0 + in_0_1 * in_1_1 + in_0_2 * in_1_2 + in_0_3 * in_1_3;\n        temp_1 = in_0_4 * in_1_0 + in_0_5 * in_1_1 + in_0_6 * in_1_2 + in_0_7 * in_1_3;\n        temp_2 = in_0_8 * in_1_0 + in_0_9 * in_1_1 + in_0_10 * in_1_2 + in_0_11 * in_1_3;\n        temp_3 = in_0_12 * in_1_0 + in_0_13 * in_1_1 + in_0_14 * in_1_2 + in_0_15 * in_1_3;\n    end\n    \n    assign out_0 = temp_0;\n    assign out_1 = temp_1;\n    assign out_2 = temp_2;\n    assign out_3 = temp_3;\n    \nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "relu",
+        "solutions": [
+            {
+                "solution": "module relu (\n    input signed [15:0] in_0,\n    output signed [15:0] out);\n\n    assign out = (in_0 >= 0) ? in_0 : 0;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "gradient_descent",
+        "solutions": [
+            {
+                "solution": "module gradient_descent (\n    input signed [31:0] in_0,\n    input signed [31:0] in_1,\n    input signed [31:0] in_2,\n    output signed [31:0] out);\n\n    reg signed [31:0] updated_weight;\n\n    always @* begin\n        updated_weight = in_2 - in_0 * in_1;\n    end\n\n    assign out = updated_weight;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "mse_loss",
+        "solutions": [
+            {
+                "solution": "module mse_loss (\n    input signed [15:0] in_0_0, input signed [15:0] in_0_1, input signed [15:0] in_0_2, input signed [15:0] in_0_3, // Ground truth vector\n    input signed [15:0] in_1_0, input signed [15:0] in_1_1, input signed [15:0] in_1_2, input signed [15:0] in_1_3, // Predicted vector\n    output signed [31:0] out);\n\n    reg signed [31:0] sum;\n    reg signed [31:0] mse;\n\n    always @* begin\n        sum = (in_0_0 - in_1_0) * (in_0_0 - in_1_0) + (in_0_1 - in_1_1) * (in_0_1 - in_1_1) + (in_0_2 - in_1_2) * (in_0_2 - in_1_2) + (in_0_3 - in_1_3) * (in_0_3 - in_1_3);\n        mse = sum / 4;\n    end\n\n    assign out = mse;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "conv2d",
+        "solutions": [
+            {
+                "solution": "module conv2d (\n    input signed [15:0] in_0_0, input signed [15:0] in_0_1, input signed [15:0] in_0_2, input signed [15:0] in_0_3, input signed [15:0] in_0_4, input signed [15:0] in_0_5, input signed [15:0] in_0_6, input signed [15:0] in_0_7, input signed [15:0] in_0_8,\n    input signed [15:0] in_1_0, input signed [15:0] in_1_1, input signed [15:0] in_1_2, input signed [15:0] in_1_3,\n    output signed [31:0] out_0, output signed [31:0] out_1, output signed [31:0] out_2, output signed [31:0] out_3);\n\n    wire signed [31:0] conv_0, conv_1, conv_2, conv_3;\n\n    assign conv_0 = in_0_0 * in_0_1 + in_0_3 * in_0_4 + in_0_6 * in_0_7;\n    assign conv_1 = in_0_1 * in_0_2 + in_0_4 * in_0_5 + in_0_7 * in_0_8;\n    assign conv_2 = in_1_0 * in_1_1 + in_1_3 * in_1_2;\n    assign conv_3 = in_1_1 * in_1_2 + in_1_2 * in_1_3;\n\n    assign out_0 = conv_0;\n    assign out_1 = conv_1;\n    assign out_2 = conv_2;\n    assign out_3 = conv_3;\n\nendmodule",
+                "pass": "测试失败: 未通过测试用例"
+            }
+        ]
+    },
+    {
+        "module_name": "compound_interest",
+        "solutions": [
+            {
+                "solution": "module compound_interest (\n    input [15:0] P,\n    input [7:0] r,\n    input [7:0] n,\n    output reg [31:0] A\n);\n\nalways @* begin\n    A = P * ((1 << 8) + r) ** n;\nend\n\nendmodule",
+                "pass": "测试失败: 未通过测试用例"
+            }
+        ]
+    },
+    {
+        "module_name": "ddm",
+        "solutions": [
+            {
+                "solution": "module ddm_calculator (\n    input [15:0] expected_dividend,\n    input [7:0] required_rate_of_return,\n    input [7:0] growth_rate,\n    output reg [31:0] ddm_value\n);\n\nalways @(*) begin\n    if (required_rate_of_return <= growth_rate) begin\n        ddm_value = 32'hFFFFFFFF; // Handle division by zero or negative results\n    end else begin\n        ddm_value = (expected_dividend << 8) / (required_rate_of_return - growth_rate);\n    end\nend\n\nendmodule",
+                "pass": "编译失败: testbench.v:11: error: Unknown module type: ddm\n2 error(s) during elaboration.\n*** These modules were missing:\n        ddm referenced 1 times.\n***"
+            }
+        ]
+    },
+    {
+        "module_name": "present_value",
+        "solutions": [
+            {
+                "solution": "module present_value (\n    input [15:0] future_amount,\n    input [7:0] rate,\n    input [7:0] n,\n    output reg [15:0] present_value\n);\n\nalways @(*) begin\n    present_value = future_amount / ((1 << 8) + (rate * (1 << 8)) / 100) ** n;\nend\n\nendmodule",
+                "pass": "测试失败: 未通过测试用例"
+            }
+        ]
+    },
+    {
+        "module_name": "currency_converter",
+        "solutions": [
+            {
+                "solution": "module currency_converter (\n    input [31:0] amount,\n    input [15:0] conversion_rate,\n    output reg [31:0] converted_amount\n);\n\nalways @(*) begin\n    converted_amount = (amount * conversion_rate) >> 16;\nend\n\nendmodule",
+                "pass": "测试失败: 未通过测试用例"
+            }
+        ]
+    },
+    {
+        "module_name": "caesar_cipher",
+        "solutions": [
+            {
+                "solution": "module caesar_cipher (\n    input [7:0] data_in,\n    output [7:0] data_out\n);\n\n    assign data_out = data_in + 3;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "modular_add_cipher",
+        "solutions": [
+            {
+                "solution": "module modular_add_cipher (\n    input [7:0] data_in,\n    output [7:0] data_out\n);\n\n    reg [7:0] key = 8'b00000101; // Fixed key of 5\n    reg [7:0] temp;\n\n    always @(*) begin\n        temp = data_in + key;\n        if (temp >= 8'b11111111) // Check if result is greater than 255\n            data_out = temp - 8'b11111111;\n        else\n            data_out = temp;\n    end\n\nendmodule",
+                "pass": "编译失败: temp.v:12: error: data_out is not a valid l-value in tb_modular_add_cipher.uut.\ntemp.v:3:      : data_out is declared here as wire.\ntemp.v:14: error: data_out is not a valid l-value in tb_modular_add_cipher.uut.\ntemp.v:3:      : data_out is declared here as wire.\n2 error(s) during elaboration."
+            }
+        ]
+    },
+    {
+        "module_name": "feistel_cipher",
+        "solutions": [
+            {
+                "solution": "module feistel_network(input [7:0] input_data,\n                       output reg [7:0] output_data);\n\n    reg [3:0] left_half;\n    reg [3:0] right_half;\n    reg [3:0] round_key = 4'b1010; // Example round key\n\n    always @(*) begin\n        left_half = input_data[7:4];\n        right_half = input_data[3:0];\n\n        right_half = right_half ^ round_key;\n\n        output_data = {right_half, left_half};\n    end\n\nendmodule",
+                "pass": "编译失败: testbench.v:15: error: Unknown module type: feistel_cipher\n2 error(s) during elaboration.\n*** These modules were missing:\n        feistel_cipher referenced 1 times.\n***"
+            }
+        ]
+    },
+    {
+        "module_name": "free_fall_distance",
+        "solutions": [
+            {
+                "solution": "module free_fall_distance (\n    input [7:0] t_in,       // time in seconds\n    output [15:0] distance  // displacement in meters\n);\n\nreg [15:0] distance;\n\nalways @(*) begin\n    distance = (10 * t_in * t_in) >> 1;\nend\n\nassign distance = distance;\n\nendmodule",
+                "pass": "编译失败: temp.v:9: error: distance Unable to assign to unresolved wires.\n1 error(s) during elaboration."
+            }
+        ]
+    },
+    {
+        "module_name": "kinetic_energy",
+        "solutions": [
+            {
+                "solution": "module kinetic_energy (\n    input [7:0] mass,      // mass in kilograms\n    input [7:0] velocity,  // velocity in m/s\n    output [15:0] energy\n);\n\nreg [15:0] kinetic_energy;\n\nalways @(*) begin\n    kinetic_energy = (mass * velocity * velocity) >> 1;\nend\n\nassign energy = kinetic_energy;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "potential_energy",
+        "solutions": [
+            {
+                "solution": "module potential_energy (\n    input [7:0] mass,      // mass in kilograms\n    input [7:0] height,    // height in meters\n    output [15:0] energy   // potential energy in joules (approx.)\n);\n\nreg [15:0] potential_energy;\n\nalways @(*) begin\n    potential_energy = mass * 10 * height;\nend\n\nassign energy = potential_energy;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "wavelength",
+        "solutions": [
+            {
+                "solution": "module wavelength (\n    input [7:0] frequency,   // frequency in MHz\n    output [7:0] wavelength  // wavelength in meters\n);\n\nreg [15:0] c = 300; // speed of light in m/MHz\n\nalways @(*) begin\n    if (frequency == 0)\n        wavelength = 8'b0;\n    else\n        wavelength = c / frequency;\nend\n\nendmodule",
+                "pass": "编译失败: temp.v:10: error: wavelength is not a valid l-value in tb_wavelength.uut.\ntemp.v:3:      : wavelength is declared here as wire.\ntemp.v:12: error: wavelength is not a valid l-value in tb_wavelength.uut.\ntemp.v:3:      : wavelength is declared here as wire.\n2 error(s) during elaboration."
+            }
+        ]
+    },
+    {
+        "module_name": "carbon_footprint",
+        "solutions": [
+            {
+                "solution": "module carbon_footprint (\n    input [7:0] energy,\n    input [7:0] distance,\n    input [7:0] waste,\n    output [15:0] footprint\n);\n\nassign footprint = (energy * 8'd85) + (distance * 8'd20) + (waste * 8'd10);\n\nendmodule",
+                "pass": "测试失败: 未通过测试用例"
+            }
+        ]
+    },
+    {
+        "module_name": "heat_index",
+        "solutions": [
+            {
+                "solution": "module heat_index (\n    input [7:0] temperature,   // Temperature in Celsius\n    input [7:0] humidity,      // Humidity in percentage\n    input signed [15:0] C1, C2, C3, C4, C5, C6, C7, C8, C9,    // Quartic T^2*R^2\n    output signed [15:0] heat_index // Heat Index in Celsius\n);\n\nreg signed [31:0] temp1, temp2, temp3, temp4, temp5, temp6, temp7, temp8, temp9;\nreg signed [15:0] heat_index;\n\nalways @* begin\n    temp1 = C1 + C2*temperature + C3*humidity + C4*temperature*humidity;\n    temp2 = C5*temperature*temperature + C6*humidity*humidity + C7*temperature*temperature*humidity;\n    temp3 = C8*temperature*humidity*humidity + C9*temperature*temperature*humidity*humidity;\n    heat_index = temp1 + temp2 + temp3;\nend\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "air_quality_index",
+        "solutions": [
+            {
+                "solution": "module air_quality_index (\n    input [7:0] pm2_5,\n    input [7:0] pm10,\n    input [7:0] no2,\n    output [15:0] aqi\n);\n\nreg [15:0] aqi_temp;\n\nalways @* begin\n    if (pm2_5 > pm10 && pm2_5 > no2)\n        aqi_temp = pm2_5 * 0.5 + (pm10 < no2 ? pm10 : no2) * 0.3 + (pm2_5 + pm10 + no2) * 0.2;\n    else if (pm10 > pm2_5 && pm10 > no2)\n        aqi_temp = pm10 * 0.5 + (pm2_5 < no2 ? pm2_5 : no2) * 0.3 + (pm2_5 + pm10 + no2) * 0.2;\n    else\n        aqi_temp = no2 * 0.5 + (pm2_5 < pm10 ? pm2_5 : pm10) * 0.3 + (pm2_5 + pm10 + no2) * 0.2;\nend\n\nassign aqi = aqi_temp;\n\nendmodule",
+                "pass": "测试失败: 未通过测试用例"
+            }
+        ]
+    },
+    {
+        "module_name": "solar_radiation_average",
+        "solutions": [
+            {
+                "solution": "module solar_radiation_average (\n    input [7:0] r0, r1, r2, r3, r4, r5, r6, r7,\n    output [7:0] avg_radiation\n);\n\nreg [15:0] sum;\n\nalways @* begin\n    sum = r0 + r1 + r2 + r3 + r4 + r5 + r6 + r7;\n    avg_radiation = sum >> 3;\nend\n\nendmodule",
+                "pass": ""
+            }
+        ]
+    }
+]

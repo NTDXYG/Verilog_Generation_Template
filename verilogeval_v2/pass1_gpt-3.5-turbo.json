@@ -1,0 +1,1406 @@
+[
+    {
+        "module_name": "2012_q1g",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input [3:0] x,\n  output logic f\n);\n\n  always_comb begin\n    case (x)\n      4'b0000: f = 1;\n      4'b0001: f = 0;\n      4'b0011: f = 1;\n      4'b0010: f = 1;\n      4'b1100: f = 0;\n      4'b1101: f = 0;\n      4'b1111: f = 0;\n      4'b1110: f = 1;\n      default: f = 0;\n    endcase\n  end\n\nendmodule",
+                "pass": "测试失败: 100个样本中有50个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "2012_q2b",
+        "solutions": [
+            {
+                "solution": "assign Y1 = (y[0] & ~w) | (y[1] & w);\nassign Y3 = (y[2] & ~w) | (y[3] & w);",
+                "pass": "编译失败: temp.v:1: syntax error\nI give up."
+            }
+        ]
+    },
+    {
+        "module_name": "2012_q2fsm",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input reset,\n  input w,\n  output z\n);\n\nreg [2:0] state, next_state;\n\nalways @ (posedge clk or posedge reset) begin\n    if (reset) begin\n        state <= 3'b000;\n    end else begin\n        state <= next_state;\n    end\nend\n\nalways @* begin\n    case (state)\n        3'b000: begin // A\n            if (w) begin\n                next_state = 3'b001; // B\n            end else begin\n                next_state = 3'b000; // A\n            end\n        end\n        3'b001: begin // B\n            if (w) begin\n                next_state = 3'b010; // C\n            end else begin\n                next_state = 3'b011; // D\n            end\n        end\n        3'b010: begin // C\n            if (w) begin\n                next_state = 3'b100; // E\n            end else begin\n                next_state = 3'b011; // D\n            end\n        end\n        3'b011: begin // D\n            if (w) begin\n                next_state = 3'b110; // F\n            end else begin\n                next_state = 3'b000; // A\n            end\n        end\n        3'b100: begin // E\n            if (w) begin\n                next_state = 3'b100; // E\n            end else begin\n                next_state = 3'b011; // D\n            end\n        end\n        3'b110: begin // F\n            if (w) begin\n                next_state = 3'b010; // C\n            end else begin\n                next_state = 3'b011; // D\n            end\n        end\n        default: next_state = 3'b000; // A\n    endcase\nend\n\nassign z = (state == 3'b100) ? 1'b1 : 1'b0;\n\nendmodule",
+                "pass": "测试失败: 400个样本中有45个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "2013_q2afsm",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input resetn,\n  input  [2:0] r,\n  output [2:0] g\n);\n\n  reg [1:0] state, next_state;\n\n  always @(posedge clk or negedge resetn) begin\n    if (~resetn) begin\n      state <= 2'b00;\n    end else begin\n      state <= next_state;\n    end\n  end\n\n  always @* begin\n    case (state)\n      2'b00: begin\n        if (r[0]) begin\n          next_state = 2'b01;\n        end else if (r[1]) begin\n          next_state = 2'b10;\n        end else if (r[2]) begin\n          next_state = 2'b11;\n        end else begin\n          next_state = 2'b00;\n        end\n      end\n      2'b01: begin\n        if (r[0]) begin\n          next_state = 2'b01;\n        end else begin\n          next_state = 2'b00;\n        end\n      end\n      2'b10: begin\n        if (r[1]) begin\n          next_state = 2'b10;\n        end else begin\n          next_state = 2'b00;\n        end\n      end\n      2'b11: begin\n        if (r[2]) begin\n          next_state = 2'b11;\n        end else begin\n          next_state = 2'b00;\n        end\n      end\n    endcase\n  end\n\n  assign g[0] = (state == 2'b01) ? 1'b1 : 1'b0;\n  assign g[1] = (state == 2'b10) ? 1'b1 : 1'b0;\n  assign g[2] = (state == 2'b11) ? 1'b1 : 1'b0;\n\nendmodule",
+                "pass": "测试失败: 1054个样本中有4个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "2013_q2bfsm",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input resetn,\n  input x,\n  input y,\n  output reg f,\n  output reg g\n);\n\nreg [1:0] state;\nreg [2:0] x_history;\nreg [1:0] y_count;\n\nalways @(posedge clk) begin\n    if (~resetn) begin\n        state <= 2'b00;\n        f <= 0;\n        g <= 0;\n        x_history <= 3'b000;\n        y_count <= 2'b00;\n    end else begin\n        case (state)\n            2'b00: begin\n                f <= 1;\n                state <= 2'b01;\n            end\n            2'b01: begin\n                x_history <= {x_history[1:0], x};\n                if (x_history == 3'b101) begin\n                    state <= 2'b10;\n                end\n            end\n            2'b10: begin\n                if (y == 1) begin\n                    g <= 1;\n                    state <= 2'b11;\n                end\n            end\n            2'b11: begin\n                if (y == 1) begin\n                    y_count <= 2'b00;\n                end else begin\n                    y_count <= y_count + 1;\n                    if (y_count == 2) begin\n                        g <= 0;\n                        state <= 2'b00;\n                    end\n                end\n            end\n        endcase\n    end\nend\n\nendmodule",
+                "pass": "测试失败: 1002个样本中有964个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "2014_q3bfsm",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input reset,\n  input x,\n  output reg z\n);\n\nreg [2:0] y, next_y;\n\nalways @(posedge clk) begin\n  if (reset) begin\n    y <= 3'b000;\n  end else begin\n    y <= next_y;\n  end\nend\n\nalways @* begin\n  case(y)\n    3'b000: begin\n      if (x) begin\n        next_y = 3'b001;\n        z = 1'b0;\n      end else begin\n        next_y = 3'b000;\n        z = 1'b0;\n      end\n    end\n    3'b001: begin\n      if (x) begin\n        next_y = 3'b100;\n        z = 1'b0;\n      end else begin\n        next_y = 3'b001;\n        z = 1'b0;\n      end\n    end\n    3'b010: begin\n      if (x) begin\n        next_y = 3'b001;\n        z = 1'b0;\n      end else begin\n        next_y = 3'b010;\n        z = 1'b0;\n      end\n    end\n    3'b011: begin\n      if (x) begin\n        next_y = 3'b010;\n        z = 1'b1;\n      end else begin\n        next_y = 3'b001;\n        z = 1'b0;\n      end\n    end\n    3'b100: begin\n      if (x) begin\n        next_y = 3'b100;\n        z = 1'b1;\n      end else begin\n        next_y = 3'b011;\n        z = 1'b1;\n      end\n    end\n    default: begin\n      next_y = 3'b000;\n      z = 1'b0;\n    end\n  endcase\nend\n\nendmodule",
+                "pass": "测试失败: 1006个样本中有118个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "2014_q3c",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input x,\n  input [2:0] y,\n  output reg Y0,\n  output reg z\n);\n\nreg [2:0] next_state;\n\nalways @(posedge clk) begin\n    case({y, x})\n        3'b0000: begin next_state <= 3'b001; z <= 1'b0; end\n        3'b0001: begin next_state <= 3'b100; z <= 1'b0; end\n        3'b0010: begin next_state <= 3'b001; z <= 1'b0; end\n        3'b0011: begin next_state <= 3'b010; z <= 1'b1; end\n        3'b0100: begin next_state <= 3'b100; z <= 1'b1; end\n        default: next_state <= 3'b000;\n    endcase\nend\n\nalways @* begin\n    Y0 = next_state[0];\nend\n\nendmodule",
+                "pass": "测试失败: 200个样本中有86个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "2014_q3fsm",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input reset,\n  input s,\n  input w,\n  output reg z\n);\n\n  reg [1:0] state;\n  reg [2:0] w_history;\n\n  always @(posedge clk) begin\n    if (reset) begin\n      state <= 2'b00;\n      w_history <= 3'b000;\n      z <= 0;\n    end else begin\n      case (state)\n        2'b00: begin\n          if (s) begin\n            state <= 2'b01;\n          end\n        end\n        2'b01: begin\n          w_history <= {w_history[1:0], w};\n          if (w_history == 3'b011) begin\n            z <= 1;\n          end else begin\n            z <= 0;\n          end\n          state <= 2'b00;\n        end\n      endcase\n    end\n  end\n\nendmodule",
+                "pass": "测试失败: 1414个样本中有302个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "2014_q4a",
+        "solutions": [
+            {
+                "solution": "always @(posedge clk) begin\n    if (E) begin\n        if (L) begin\n            Q <= R;\n        end else begin\n            Q <= w;\n        end\n    end\nend",
+                "pass": "编译失败: temp.v:1: syntax error\nI give up."
+            }
+        ]
+    },
+    {
+        "module_name": "7420",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input p1a,\n  input p1b,\n  input p1c,\n  input p1d,\n  output p1y,\n  input p2a,\n  input p2b,\n  input p2c,\n  input p2d,\n  output p2y\n);\n\n  wire nand1_out;\n  wire nand2_out;\n\n  assign nand1_out = ~(p1a & p1b & p1c & p1d);\n  assign nand2_out = ~(p2a & p2b & p2c & p2d);\n\n  assign p1y = nand1_out;\n  assign p2y = nand2_out;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "7458",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input p1a,\n  input p1b,\n  input p1c,\n  input p1d,\n  input p1e,\n  input p1f,\n  output p1y,\n  input p2a,\n  input p2b,\n  input p2c,\n  input p2d,\n  output p2y\n);\n\n  wire and1_out, and2_out, and3_out, and4_out;\n\n  assign and1_out = p1a & p1b & p1c;\n  assign and2_out = p1d & p1e & p1f;\n  assign and3_out = p2a & p2b;\n  assign and4_out = p2c & p2d;\n\n  assign p1y = and1_out | and2_out;\n  assign p2y = and3_out | and4_out;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "alwaysblock1",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input a,\n  input b,\n  output out_assign,\n  output reg out_alwaysblock\n);\n\nassign out_assign = a & b;\n\nalways @(*) begin\n  out_alwaysblock = a & b;\nend\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "alwaysblock2",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input a,\n  input b,\n  output out_assign,\n  output reg out_always_comb,\n  output reg out_always_ff\n);\n\nassign out_assign = a ^ b;\n\nalways @* begin\n  out_always_comb = a ^ b;\nend\n\nalways @(posedge clk) begin\n  out_always_ff <= a ^ b;\nend\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "always_case",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input [2:0] sel,\n  input [3:0] data0,\n  input [3:0] data1,\n  input [3:0] data2,\n  input [3:0] data3,\n  input [3:0] data4,\n  input [3:0] data5,\n  output reg [3:0] out\n);\n\nalways @(*) begin\n    case(sel)\n        3'b000: out = data0;\n        3'b001: out = data1;\n        3'b010: out = data2;\n        3'b011: out = data3;\n        3'b100: out = data4;\n        3'b101: out = data5;\n        default: out = 4'b0000;\n    endcase\nend\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "always_case2",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input [3:0] in,\n  output reg [1:0] pos\n);\n\nalways @* begin\n  case(in)\n    4'b0001: pos = 2'b0;\n    4'b0010: pos = 2'b1;\n    4'b0011: pos = 2'b1;\n    4'b0100: pos = 2'b2;\n    4'b0101: pos = 2'b2;\n    4'b0110: pos = 2'b2;\n    4'b0111: pos = 2'b2;\n    4'b1000: pos = 2'b3;\n    4'b1001: pos = 2'b3;\n    4'b1010: pos = 2'b3;\n    4'b1011: pos = 2'b3;\n    4'b1100: pos = 2'b3;\n    4'b1101: pos = 2'b3;\n    4'b1110: pos = 2'b3;\n    4'b1111: pos = 2'b3;\n    default: pos = 2'b0;\n  endcase\nend\n\nendmodule",
+                "pass": "编译失败: temp.v:11: syntax error\ntemp.v:11: error: malformed statement\ntemp.v:12: syntax error\ntemp.v:12: error: malformed statement\ntemp.v:13: syntax error\ntemp.v:13: error: malformed statement\ntemp.v:14: syntax error\ntemp.v:14: error: malformed statement\ntemp.v:15: syntax error\ntemp.v:15: error: malformed statement\ntemp.v:16: syntax error\ntemp.v:16: error: malformed statement\ntemp.v:17: syntax error\ntemp.v:17: error: malformed statement\ntemp.v:18: syntax error\ntemp.v:18: error: malformed statement\ntemp.v:19: syntax error\ntemp.v:19: error: malformed statement\ntemp.v:20: syntax error\ntemp.v:20: error: malformed statement\ntemp.v:21: syntax error\ntemp.v:21: error: malformed statement\ntemp.v:22: syntax error\ntemp.v:22: error: malformed statement"
+            }
+        ]
+    },
+    {
+        "module_name": "always_casez",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input [7:0] in,\n  output reg [2:0] pos\n);\n\nalways @* begin\n  case(in)\n    8'b00000001: pos = 3'b0;\n    8'b00000010: pos = 3'b1;\n    8'b00000100: pos = 3'b2;\n    8'b00001000: pos = 3'b3;\n    8'b00010000: pos = 3'b4;\n    8'b00100000: pos = 3'b5;\n    8'b01000000: pos = 3'b6;\n    8'b10000000: pos = 3'b7;\n    default: pos = 3'b0;\n  endcase\nend\n\nendmodule",
+                "pass": "编译失败: temp.v:10: syntax error\ntemp.v:10: error: malformed statement\ntemp.v:11: syntax error\ntemp.v:11: error: malformed statement\ntemp.v:12: syntax error\ntemp.v:12: error: malformed statement\ntemp.v:13: syntax error\ntemp.v:13: error: malformed statement\ntemp.v:14: syntax error\ntemp.v:14: error: malformed statement\ntemp.v:15: syntax error\ntemp.v:15: error: malformed statement"
+            }
+        ]
+    },
+    {
+        "module_name": "always_if",
+        "solutions": [
+            {
+                "solution": "assign out_assign = (sel_b1 & sel_b2) ? b : a;\n\nalways @(*) begin\n    if (sel_b1 & sel_b2)\n        out_always = b;\n    else\n        out_always = a;\nend",
+                "pass": "编译失败: temp.v:1: syntax error\nI give up."
+            }
+        ]
+    },
+    {
+        "module_name": "always_if2",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input cpu_overheated,\n  output reg shut_off_computer,\n  input arrived,\n  input gas_tank_empty,\n  output reg keep_driving\n);\n\n  always @(*) begin\n      if (cpu_overheated)\n         shut_off_computer = 1;\n      else\n         shut_off_computer = 0;\n  end\n\n  always @(*) begin\n      if (arrived)\n         keep_driving = ~gas_tank_empty;\n      else\n         keep_driving = 0;\n  end\n\nendmodule",
+                "pass": "测试失败: 121个样本中有53个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "always_nolatches",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input [15:0] scancode,\n  output reg left,\n  output reg down,\n  output reg right,\n  output reg up\n);\n\nalways @(*) begin\n    case(scancode)\n        16'hE06B: begin\n            left = 1;\n            down = 0;\n            right = 0;\n            up = 0;\n        end\n        16'hE072: begin\n            left = 0;\n            down = 1;\n            right = 0;\n            up = 0;\n        end\n        16'hE074: begin\n            left = 0;\n            down = 0;\n            right = 1;\n            up = 0;\n        end\n        16'hE075: begin\n            left = 0;\n            down = 0;\n            right = 0;\n            up = 1;\n        end\n        default: begin\n            left = 0;\n            down = 0;\n            right = 0;\n            up = 0;\n        end\n    endcase\nend\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "andgate",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input a,\n  input b,\n  output out\n);\n\nassign out = a & b;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "bugs_addsubz",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input do_sub,\n  input [7:0] a,\n  input [7:0] b,\n  output reg [7:0] out,\n  output reg result_is_zero\n);\n\n  always @(*) begin\n      case (do_sub)\n        0: out = a+b;\n        1: out = a-b;\n      endcase\n\n      if (out == 8'h00)\n          result_is_zero = 1;\n      else\n          result_is_zero = 0;\n  end\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "bugs_case",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input [7:0] code,\n  output reg [3:0] out,\n  output reg valid\n);\n\nalways @(*) begin\n    case(code)\n        8'h45: begin out = 4'b0000; valid = 1; end\n        8'h16: begin out = 4'b0001; valid = 1; end\n        8'h1e: begin out = 4'b0010; valid = 1; end\n        8'h26: begin out = 4'b0011; valid = 1; end\n        8'h25: begin out = 4'b0100; valid = 1; end\n        8'h2e: begin out = 4'b0101; valid = 1; end\n        8'h36: begin out = 4'b0110; valid = 1; end\n        8'h3d: begin out = 4'b0111; valid = 1; end\n        8'h3e: begin out = 4'b1000; valid = 1; end\n        8'h46: begin out = 4'b1001; valid = 1; end\n        default: begin out = 4'b0000; valid = 0; end\n    endcase\nend\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "bugs_mux2",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input sel,\n  input [7:0] a,\n  input [7:0] b,\n  output reg [7:0] out\n);\n\nalways @(*) begin\n    if(sel == 1'b0)\n        out = a;\n    else\n        out = b;\nend\n\nendmodule",
+                "pass": "测试失败: 114个样本中有111个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "circuit1",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input a,\n  input b,\n  output q\n);\n  \n  assign q = a & b;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "circuit10",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input a,\n  input b,\n  output q,\n  output state\n);\n\n  reg q_reg, state_reg;\n\n  always @(posedge clk) begin\n    state_reg <= q_reg;\n    if (a & ~b)\n      q_reg <= 1'b1;\n    else if (~a & b)\n      q_reg <= 1'b0;\n  end\n\n  assign q = q_reg;\n  assign state = state_reg;\n\nendmodule",
+                "pass": "测试失败: 232个样本中有99个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "circuit2",
+        "solutions": [
+            {
+                "solution": "assign q = (~a & ~b & ~c & ~d) | (~a & ~b & c & ~d) | (~a & b & ~c & d) | (a & b & c & d);",
+                "pass": "编译失败: temp.v:1: syntax error\nI give up."
+            }
+        ]
+    },
+    {
+        "module_name": "circuit3",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input a,\n  input b,\n  input c,\n  input d,\n  output q\n);\n  \n  assign q = (a & b) | (c & d);\n\nendmodule",
+                "pass": "测试失败: 121个样本中有49个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "circuit4",
+        "solutions": [
+            {
+                "solution": "assign q = (a & b) | (c & d);",
+                "pass": "编译失败: temp.v:1: syntax error\nI give up."
+            }
+        ]
+    },
+    {
+        "module_name": "circuit5",
+        "solutions": [
+            {
+                "solution": "always @* begin\n    case({a,b,c,d,e})\n        5'b00000: q = 4'b1011;\n        5'b00001: q = 4'b1110;\n        5'b00010: q = 4'b0001;\n        5'b00011: q = 4'b1101;\n        5'b00100: q = 4'b1111;\n        5'b00101: q = 4'b1111;\n        5'b00110: q = 4'b1111;\n        5'b00111: q = 4'b1111;\n        5'b01000: q = 4'b1111;\n        5'b01001: q = 4'b1111;\n        5'b01010: q = 4'b1111;\n        5'b01011: q = 4'b1111;\n        5'b01100: q = 4'b1111;\n        5'b01101: q = 4'b1111;\n        5'b01110: q = 4'b1111;\n        5'b01111: q = 4'b1111;\n        5'b10000: q = 4'b1111;\n        5'b10001: q = 4'b1111;\n        5'b10010: q = 4'b1111;\n        5'b10011: q = 4'b1111;\n        5'b10100: q = 4'b1111;\n        5'b10101: q = 4'b1111;\n        5'b10110: q = 4'b1111;\n        5'b10111: q = 4'b1111;\n        5'b11000: q = 4'b1111;\n        5'b11001: q = 4'b1111;\n        5'b11010: q = 4'b1111;\n        5'b11011: q = 4'b1111;\n        5'b11100: q = 4'b1111;\n        5'b11101: q = 4'b1111;\n        5'b11110: q = 4'b1111;\n        5'b11111: q = 4'b1111;\n    endcase\nend",
+                "pass": "编译失败: temp.v:1: syntax error\nI give up."
+            }
+        ]
+    },
+    {
+        "module_name": "circuit6",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input [2:0] a,\n  output reg [15:0] q\n);\n  \nalways @* begin\n  case(a)\n    3'b000: q = 16'h1232;\n    3'b001: q = 16'haee0;\n    3'b010: q = 16'h27d4;\n    3'b011: q = 16'h5a0e;\n    3'b100: q = 16'h2066;\n    3'b101: q = 16'h64ce;\n    3'b110: q = 16'hc526;\n    3'b111: q = 16'h2f19;\n    default: q = 16'h0000;\n  endcase\nend\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "circuit7",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input a,\n  output reg q\n);\n\nreg q_next;\n\nalways @(posedge clk) begin\n    if (a) begin\n        q <= q_next;\n    end\nend\n\nalways @* begin\n    q_next = (a & ~q) | (~a & q);\nend\n\nendmodule",
+                "pass": "测试失败: 123个样本中有120个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "circuit8",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clock,\n  input a,\n  output reg p,\n  output reg q\n);\n\nreg state;\n\nalways @(posedge clock) begin\n    case(state)\n        2'b00: begin\n            p <= 0;\n            q <= 0;\n            if(a == 1)\n                state <= 2'b01;\n        end\n        2'b01: begin\n            p <= 1;\n            q <= 0;\n            if(a == 0)\n                state <= 2'b10;\n        end\n        2'b10: begin\n            p <= 0;\n            q <= 1;\n            if(a == 1)\n                state <= 2'b11;\n        end\n        2'b11: begin\n            p <= 1;\n            q <= 1;\n            if(a == 0)\n                state <= 2'b00;\n        end\n    endcase\nend\n\ninitial begin\n    state <= 2'b00;\n    p <= 0;\n    q <= 0;\nend\n\nendmodule",
+                "pass": "测试失败: 240个样本中有181个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "circuit9",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input a,\n  output reg [2:0] q\n);\n\nalways @(posedge clk) begin\n    if (a) begin\n        if (q == 6) begin\n            q <= 0;\n        end else begin\n            q <= q + 1;\n        end\n    end\nend\n\nendmodule",
+                "pass": "测试失败: 245个样本中有244个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "conditional",
+        "solutions": [
+            {
+                "solution": "always @* begin\n    if (a < b && a < c && a < d)\n        min = a;\n    else if (b < c && b < d)\n        min = b;\n    else if (c < d)\n        min = c;\n    else\n        min = d;\nend",
+                "pass": "编译失败: temp.v:1: syntax error\nI give up."
+            }
+        ]
+    },
+    {
+        "module_name": "conwaylife",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input load,\n  input [255:0] data,\n  output reg [255:0] q\n);\n\nreg [255:0] next_q;\n\nalways @(posedge clk) begin\n  if (load) begin\n    q <= data;\n  end else begin\n    for (int i = 0; i < 256; i = i + 1) begin\n      int neighbors = q[(i+1)%256] + q[(i-1+256)%256] + q[(i+16)%256] + q[(i-16+256)%256] + q[(i+15)%256] + q[(i-15+256)%256] + q[(i+17)%256] + q[(i-17+256)%256];\n      if (neighbors == 0 || neighbors == 1) begin\n        next_q[i] = 0;\n      end else if (neighbors == 2) begin\n        next_q[i] = q[i];\n      end else if (neighbors == 3) begin\n        next_q[i] = 1;\n      end else begin\n        next_q[i] = 0;\n      end\n    end\n    q <= next_q;\n  end\nend\n\nendmodule",
+                "pass": "测试失败: 5023个样本中有780个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "count10",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input reset,\n  output reg [3:0] q\n);\n\nalways @(posedge clk) begin\n    if (reset) begin\n        q <= 4'b0000;\n    end else begin\n        if (q == 4'b1001) begin\n            q <= 4'b0000;\n        end else begin\n            q <= q + 1;\n        end\n    end\nend\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "count15",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input reset,\n  output reg [3:0] q\n);\n\nalways @(posedge clk) begin\n  if (reset) begin\n    q <= 4'b0000;\n  end else begin\n    if (q == 4'b1111) begin\n      q <= 4'b0000;\n    end else begin\n      q <= q + 1;\n    end\n  end\nend\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "count1to10",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input reset,\n  output reg [3:0] q\n);\n\nalways @(posedge clk) begin\n  if (reset) begin\n    q <= 4'b0001;\n  end else begin\n    if (q == 4'b1010) begin\n      q <= 4'b0001;\n    end else begin\n      q <= q + 1;\n    end\n  end\nend\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "countbcd",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input reset,\n  output [3:1] ena,\n  output reg [15:0] q\n);\n\nreg [3:0] digit1, digit2, digit3, digit4;\n\nalways @(posedge clk) begin\n    if (reset) begin\n        digit1 <= 4'b0;\n        digit2 <= 4'b0;\n        digit3 <= 4'b0;\n        digit4 <= 4'b0;\n    end else begin\n        digit1 <= digit1 + 1;\n        if (digit1 == 10) begin\n            digit1 <= 4'b0;\n            digit2 <= digit2 + 1;\n            if (digit2 == 10) begin\n                digit2 <= 4'b0;\n                digit3 <= digit3 + 1;\n                if (digit3 == 10) begin\n                    digit3 <= 4'b0;\n                    digit4 <= digit4 + 1;\n                    if (digit4 == 10) begin\n                        digit4 <= 4'b0;\n                    end\n                end\n            end\n        end\n    end\nend\n\nassign ena = {digit4, digit3, digit2};\nassign q = {digit4, digit3, digit2, digit1};\n\nendmodule",
+                "pass": "测试失败: 39805个样本中有39672个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "counter_2bc",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input areset,\n  input train_valid,\n  input train_taken,\n  output reg [1:0] state\n);\n\nalways @(posedge clk or posedge areset) begin\n    if (areset) begin\n        state <= 2'b01;\n    end else begin\n        if (train_valid) begin\n            if (train_taken && (state < 2'b11)) begin\n                state <= state + 1;\n            end else if (!train_taken && (state > 2'b00)) begin\n                state <= state - 1;\n            end\n        end\n    end\nend\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "countslow",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input slowena,\n  input reset,\n  output reg [3:0] q\n);\n\nalways @(posedge clk) begin\n    if (reset) begin\n        q <= 4'b0000;\n    end else if (slowena) begin\n        if (q == 4'b1001) begin\n            q <= 4'b0000;\n        end else begin\n            q <= q + 1;\n        end\n    end\nend\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "count_clock",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input reset,\n  input ena,\n  output reg pm,\n  output reg [7:0] hh,\n  output reg [7:0] mm,\n  output reg [7:0] ss\n);\n\nreg [3:0] hours_tens, hours_ones;\nreg [3:0] minutes_tens, minutes_ones;\nreg [3:0] seconds_tens, seconds_ones;\n\nalways @(posedge clk) begin\n    if (reset) begin\n        pm <= 0;\n        hours_tens <= 1;\n        hours_ones <= 2;\n        minutes_tens <= 0;\n        minutes_ones <= 0;\n        seconds_tens <= 0;\n        seconds_ones <= 0;\n    end else begin\n        if (ena) begin\n            seconds_ones <= (seconds_ones == 9) ? 0 : seconds_ones + 1;\n            if (seconds_ones == 0) begin\n                seconds_tens <= (seconds_tens == 5) ? 0 : seconds_tens + 1;\n                if (seconds_tens == 0) begin\n                    minutes_ones <= (minutes_ones == 9) ? 0 : minutes_ones + 1;\n                    if (minutes_ones == 0) begin\n                        minutes_tens <= (minutes_tens == 5) ? 0 : minutes_tens + 1;\n                        if (minutes_tens == 0) begin\n                            hours_ones <= (hours_ones == 9) ? 0 : hours_ones + 1;\n                            if (hours_ones == 0) begin\n                                hours_tens <= (hours_tens == 1) ? 0 : hours_tens + 1;\n                                if (hours_tens == 0) begin\n                                    pm <= ~pm;\n                                end\n                            end\n                        end\n                    end\n                end\n            end\n        end\n    end\nend\n\nassign hh = {hours_tens, hours_ones};\nassign mm = {minutes_tens, minutes_ones};\nassign ss = {seconds_tens, seconds_ones};\n\nendmodule",
+                "pass": "测试失败: 200000个样本中有199937个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "dff",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input d,\n  output reg q\n);\n\nalways @(posedge clk)\nbegin\n    q <= d;\nend\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "dff16e",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input resetn,\n  input [1:0] byteena,\n  input [15:0] d,\n  output reg [15:0] q\n);\n\nreg [15:0] q_reg;\n\nalways @(posedge clk or negedge resetn) begin\n  if (~resetn) begin\n    q_reg <= 16'b0;\n  end else begin\n    if (byteena[0]) begin\n      q_reg[7:0] <= d[7:0];\n    end\n    if (byteena[1]) begin\n      q_reg[15:8] <= d[15:8];\n    end\n  end\nend\n\nassign q = q_reg;\n\nendmodule",
+                "pass": "测试失败: 443个样本中有1个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "dff8",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input [7:0] d,\n  output reg [7:0] q\n);\n\nreg [7:0] q_reg;\n\nalways @(posedge clk) begin\n  q_reg <= d;\nend\n\nassign q = q_reg;\n\nendmodule",
+                "pass": "测试失败: 41个样本中有1个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "dff8ar",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input [7:0] d,\n  input areset,\n  output reg [7:0] q\n);\n\nreg [7:0] q_reg;\n\nalways @(posedge clk or posedge areset) begin\n  if (areset) begin\n    q_reg <= 8'b0;\n  end else begin\n    q_reg <= d;\n  end\nend\n\nassign q = q_reg;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "dff8p",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input [7:0] d,\n  input reset,\n  output reg [7:0] q\n);\n\nreg [7:0] q_reg;\n\nalways @(negedge clk or posedge reset) begin\n  if (reset) begin\n    q_reg <= 8'b00110100; // 0x34\n  end else begin\n    q_reg <= d;\n  end\nend\n\nassign q = q_reg;\n\nendmodule",
+                "pass": "测试失败: 436个样本中有46个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "dff8r",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input [7:0] d,\n  input reset,\n  output reg [7:0] q\n);\n\nreg [7:0] q_reg;\n\nalways @(posedge clk) begin\n  if (reset) begin\n    q_reg <= 8'b0;\n  end else begin\n    q_reg <= d;\n  end\nend\n\nassign q = q_reg;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "dualedge",
+        "solutions": [
+            {
+                "solution": "always @(posedge clk)\nbegin\n  q <= d;\nend\n\nalways @(negedge clk)\nbegin\n  q <= d;\nend",
+                "pass": "编译失败: temp.v:1: syntax error\nI give up."
+            }
+        ]
+    },
+    {
+        "module_name": "ece241_2013_q12",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input enable,\n  input S,\n  input A,\n  input B,\n  input C,\n  output reg Z\n);\n\nreg [7:0] Q;\n\nalways @(posedge clk) begin\n  if (enable) begin\n    Q <= {Q[6:0], S};\n  end\n  case ({A, B, C})\n    3'b000: Z <= Q[0];\n    3'b001: Z <= Q[1];\n    3'b010: Z <= Q[2];\n    3'b011: Z <= Q[3];\n    3'b100: Z <= Q[4];\n    3'b101: Z <= Q[5];\n    3'b110: Z <= Q[6];\n    3'b111: Z <= Q[7];\n  endcase\nend\n\nendmodule",
+                "pass": "测试失败: 530个样本中有189个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "ece241_2013_q2",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input a,\n  input b,\n  input c,\n  input d,\n  output out_sop,\n  output out_pos\n);\n\n  assign out_sop = (~a & ~b & c & d) | (~a & b & ~c & ~d) | (a & ~b & ~c & ~d);\n  assign out_pos = (a + b + ~c + ~d) * (a + ~b + c + ~d) * (~a + b + c + d);\n  \nendmodule",
+                "pass": "测试失败: 107个样本中有38个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "ece241_2013_q4",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input reset,\n  input [2:0] s,\n  output reg fr2,\n  output reg fr1,\n  output reg fr0,\n  output reg dfr\n);\n\nreg [2:0] prev_s;\n\nalways @(posedge clk) begin\n    if (reset) begin\n        fr2 <= 1'b1;\n        fr1 <= 1'b1;\n        fr0 <= 1'b1;\n        dfr <= 1'b1;\n        prev_s <= 3'b0;\n    end else begin\n        case ({s, prev_s})\n            3'b111: begin // Above s[2]\n                fr2 <= 1'b0;\n                fr1 <= 1'b0;\n                fr0 <= 1'b0;\n                dfr <= 1'b0;\n            end\n            3'b110: begin // Between s[2] and s[1]\n                fr2 <= 1'b1;\n                fr1 <= 1'b0;\n                fr0 <= 1'b0;\n                dfr <= 1'b0;\n            end\n            3'b101: begin // Between s[1] and s[0]\n                fr2 <= 1'b1;\n                fr1 <= 1'b1;\n                fr0 <= 1'b0;\n                dfr <= 1'b0;\n            end\n            default: begin // Below s[0]\n                fr2 <= 1'b1;\n                fr1 <= 1'b1;\n                fr0 <= 1'b1;\n                dfr <= 1'b1;\n            end\n        endcase\n        prev_s <= s;\n    end\nend\n\nendmodule",
+                "pass": "测试失败: 2040个样本中有1403个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "ece241_2013_q7",
+        "solutions": [
+            {
+                "solution": "always @(posedge clk) begin\n    if (j & ~k)\n        Q <= 1;\n    else if (~j & k)\n        Q <= 0;\n    else if (j & k)\n        Q <= ~Q;\nend",
+                "pass": "编译失败: temp.v:1: syntax error\nI give up."
+            }
+        ]
+    },
+    {
+        "module_name": "ece241_2013_q8",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input aresetn,\n  input x,\n  output reg z\n);\n\nreg [1:0] state, next_state;\n\nalways @(posedge clk or negedge aresetn) begin\n    if (~aresetn) begin\n        state <= 2'b00;\n    end else begin\n        state <= next_state;\n    end\nend\n\nalways @* begin\n    case (state)\n        2'b00: begin\n            if (x) begin\n                next_state = 2'b01;\n            end else begin\n                next_state = 2'b00;\n            end\n        end\n        2'b01: begin\n            if (x) begin\n                next_state = 2'b10;\n            end else begin\n                next_state = 2'b00;\n            end\n        end\n        2'b10: begin\n            if (x) begin\n                next_state = 2'b11;\n            end else begin\n                next_state = 2'b00;\n            end\n        end\n        2'b11: begin\n            if (x) begin\n                next_state = 2'b11;\n            end else begin\n                next_state = 2'b00;\n            end\n        end\n        default: next_state = 2'b00;\n    endcase\nend\n\nalways @* begin\n    if (state == 2'b10) begin\n        z = 1'b1;\n    end else begin\n        z = 1'b0;\n    end\nend\n\nendmodule",
+                "pass": "测试失败: 440个样本中有97个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "ece241_2014_q1c",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input [7:0] a,\n  input [7:0] b,\n  output [7:0] s,\n  output overflow\n);\n\nreg [8:0] sum;\n\nalways @* begin\n  sum = a + b;\n  if ((a[7] == b[7]) && (sum[8] != a[7])) begin\n    overflow = 1;\n  end else begin\n    overflow = 0;\n  end\nend\n\nassign s = sum[7:0];\n\nendmodule",
+                "pass": "编译失败: temp.v:13: error: overflow is not a valid l-value in tb.top_module1.\ntemp.v:5:      : overflow is declared here as wire.\ntemp.v:15: error: overflow is not a valid l-value in tb.top_module1.\ntemp.v:5:      : overflow is declared here as wire.\n2 error(s) during elaboration."
+            }
+        ]
+    },
+    {
+        "module_name": "ece241_2014_q3",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input c,\n  input d,\n  output [3:0] mux_in\n);\n\nwire w1, w2, w3;\n\nassign w1 = (c & d) | (~c & ~d);\nassign w2 = c & ~d;\nassign w3 = c | d;\n\nassign mux_in[0] = ~w1;\nassign mux_in[1] = w2;\nassign mux_in[2] = w3;\nassign mux_in[3] = w1 | w3;\n\nendmodule",
+                "pass": "测试失败: 60个样本中有60个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "ece241_2014_q4",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input x,\n  output z\n);\n\nreg d1, d2, d3;\nwire xor_out, and_out, or_out;\n\nassign xor_out = x ^ d1;\nassign and_out = x & ~d2;\nassign or_out = x | ~d3;\n\nalways @(posedge clk) begin\n    d1 <= xor_out;\n    d2 <= and_out;\n    d3 <= or_out;\nend\n\nassign z = ~(d1 | d2 | d3);\n\nendmodule",
+                "pass": "测试失败: 118个样本中有45个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "ece241_2014_q5a",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input areset,\n  input x,\n  output reg z\n);\n\nreg [1:0] state;\nreg [1:0] next_state;\n\nparameter IDLE = 2'b00;\nparameter CONVERT = 2'b01;\n\nalways @ (posedge clk or posedge areset)\nbegin\n  if (areset)\n  begin\n    state <= IDLE;\n    z <= 1'b0;\n  end\n  else\n  begin\n    state <= next_state;\n    case (state)\n      IDLE:\n        begin\n          if (x)\n            next_state <= CONVERT;\n          else\n            next_state <= IDLE;\n        end\n      CONVERT:\n        begin\n          if (x)\n            next_state <= CONVERT;\n          else\n            next_state <= IDLE;\n        end\n      default:\n        next_state <= IDLE;\n    endcase\n  end\nend\n\nalways @*\nbegin\n  case (state)\n    IDLE:\n      z = 1'b0;\n    CONVERT:\n      z = ~x + 1'b1;\n    default:\n      z = 1'b0;\n  endcase\nend\n\nendmodule",
+                "pass": "测试失败: 436个样本中有214个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "ece241_2014_q5b",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input areset,\n  input x,\n  output z\n);\n\n  reg [1:0] state, next_state;\n\n  always @ (posedge clk or posedge areset)\n  begin\n    if (areset)\n      state <= 2'b00;\n    else\n      state <= next_state;\n  end\n\n  always @ (*)\n  begin\n    case (state)\n      2'b00: begin\n               if (x)\n                 next_state = 2'b01;\n               else\n                 next_state = 2'b00;\n               z = 1'b0;\n             end\n      2'b01: begin\n               if (x)\n                 next_state = 2'b01;\n               else\n                 next_state = 2'b10;\n               z = 1'b1;\n             end\n      2'b10: begin\n               if (x)\n                 next_state = 2'b10;\n               else\n                 next_state = 2'b10;\n               z = 1'b1;\n             end\n      default: begin\n                 next_state = 2'b10;\n                 z = 1'b1;\n               end\n    endcase\n  end\n\nendmodule",
+                "pass": "编译失败: temp.v:26: error: z is not a valid l-value in tb.top_module1.\ntemp.v:5:      : z is declared here as wire.\ntemp.v:33: error: z is not a valid l-value in tb.top_module1.\ntemp.v:5:      : z is declared here as wire.\ntemp.v:40: error: z is not a valid l-value in tb.top_module1.\ntemp.v:5:      : z is declared here as wire.\ntemp.v:44: error: z is not a valid l-value in tb.top_module1.\ntemp.v:5:      : z is declared here as wire.\n4 error(s) during elaboration."
+            }
+        ]
+    },
+    {
+        "module_name": "edgecapture",
+        "solutions": [
+            {
+                "solution": "always @(posedge clk) begin\n    if (reset) begin\n        out <= 32'b0;\n    end else begin\n        for (int i=0; i<32; i=i+1) begin\n            if (in[i] && !in[i+1]) begin\n                out[i] <= 1;\n            end else begin\n                out[i] <= 0;\n            end\n        end\n    end\nend",
+                "pass": "编译失败: temp.v:1: syntax error\nI give up."
+            }
+        ]
+    },
+    {
+        "module_name": "edgedetect",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input [7:0] in,\n  output reg [7:0] pedge\n);\n\nreg [7:0] prev_in;\n\nalways @(posedge clk) begin\n  for (int i=0; i<8; i=i+1) begin\n    if (in[i] && !prev_in[i]) begin\n      pedge[i] <= 1;\n    end else begin\n      pedge[i] <= 0;\n    end\n  end\n  prev_in <= in;\nend\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "edgedetect2",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input [7:0] in,\n  output reg [7:0] anyedge\n);\n\nreg [7:0] prev_in;\n\nalways @(posedge clk) begin\n  for (int i=0; i<8; i=i+1) begin\n    if (in[i] != prev_in[i]) begin\n      anyedge[i] <= 1;\n    end else begin\n      anyedge[i] <= 0;\n    end\n  end\n  prev_in <= in;\nend\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "fadd",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input a,\n  input b,\n  input cin,\n  output cout,\n  output sum\n);\n\n  assign {cout, sum} = a + b + cin;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "fsm1",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input in,\n  input areset,\n  output reg out\n);\n\nreg state, next_state;\n\nparameter A = 1'b0;\nparameter B = 1'b1;\n\nalways @ (posedge clk or posedge areset) begin\n    if (areset) begin\n        state <= B;\n    end else begin\n        state <= next_state;\n    end\nend\n\nalways @* begin\n    case (state)\n        A: begin\n            if (in) begin\n                next_state = A;\n            end else begin\n                next_state = B;\n            end\n        end\n        B: begin\n            if (in) begin\n                next_state = B;\n            end else begin\n                next_state = A;\n            end\n        end\n    endcase\nend\n\nassign out = state;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "fsm1s",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input in,\n  input reset,\n  output reg out\n);\n\n  parameter B = 1'b1;\n  parameter A = 1'b0;\n\n  reg state, next_state;\n\n  always @(posedge clk) begin\n    if (reset) begin\n      state <= B;\n    end else begin\n      state <= next_state;\n    end\n  end\n\n  always @* begin\n    case (state)\n      B: begin\n        if (in) begin\n          next_state = B;\n          out = 1'b1;\n        end else begin\n          next_state = A;\n          out = 1'b1;\n        end\n      end\n      A: begin\n        if (in) begin\n          next_state = A;\n          out = 1'b0;\n        end else begin\n          next_state = B;\n          out = 1'b0;\n        end\n      end\n    endcase\n  end\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "fsm2",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input j,\n  input k,\n  input areset,\n  output reg out\n);\n\nparameter OFF = 1'b0;\nparameter ON = 1'b1;\n\nreg state, next_state;\n\nalways @ (posedge clk or posedge areset)\nbegin\n  if (areset)\n    state <= OFF;\n  else\n    state <= next_state;\nend\n\nalways @ *\nbegin\n  case(state)\n    OFF: begin\n      if (j)\n        next_state = ON;\n      else\n        next_state = OFF;\n      out = OFF;\n    end\n    ON: begin\n      if (k)\n        next_state = OFF;\n      else\n        next_state = ON;\n      out = ON;\n    end\n  endcase\nend\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "fsm2s",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input j,\n  input k,\n  input reset,\n  output reg out\n);\n\nparameter OFF = 1'b0;\nparameter ON = 1'b1;\n\nreg state, next_state;\n\nalways @(posedge clk or posedge reset) begin\n  if (reset) begin\n    state <= OFF;\n  end else begin\n    state <= next_state;\n  end\nend\n\nalways @* begin\n  case(state)\n    OFF: begin\n      if (j) begin\n        next_state = ON;\n      end else begin\n        next_state = OFF;\n      end\n      out = OFF;\n    end\n    ON: begin\n      if (k) begin\n        next_state = OFF;\n      end else begin\n        next_state = ON;\n      end\n      out = ON;\n    end\n  endcase\nend\n\nendmodule",
+                "pass": "测试失败: 241个样本中有21个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "fsm3",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input in,\n  input areset,\n  output reg out\n);\n\n  reg [1:0] state, next_state;\n\n  always @(posedge clk or posedge areset) begin\n    if (areset) begin\n      state <= 2'b00; // State A\n    end else begin\n      state <= next_state;\n    end\n  end\n\n  always @* begin\n    case(state)\n      2'b00: begin // State A\n        if (in) begin\n          next_state = 2'b01; // Next state B\n          out = 1'b0;\n        end else begin\n          next_state = 2'b00; // Next state A\n          out = 1'b0;\n        end\n      end\n      2'b01: begin // State B\n        if (in) begin\n          next_state = 2'b01; // Next state B\n          out = 1'b0;\n        end else begin\n          next_state = 2'b10; // Next state C\n          out = 1'b0;\n        end\n      end\n      2'b10: begin // State C\n        if (in) begin\n          next_state = 2'b11; // Next state D\n          out = 1'b0;\n        end else begin\n          next_state = 2'b00; // Next state A\n          out = 1'b0;\n        end\n      end\n      2'b11: begin // State D\n        if (in) begin\n          next_state = 2'b01; // Next state B\n          out = 1'b1;\n        end else begin\n          next_state = 2'b10; // Next state C\n          out = 1'b0;\n        end\n      end\n    endcase\n  end\n\nendmodule",
+                "pass": "测试失败: 230个样本中有17个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "fsm3comb",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input in,\n  input [1:0] state,\n  output reg [1:0] next_state,\n  output out\n);\n\nalways @(*) begin\n    case(state)\n        2'b00: begin\n            next_state = in ? 2'b11 : 2'b01;\n            out = 0;\n        end\n        2'b01: begin\n            next_state = in ? 2'b10 : 2'b01;\n            out = 0;\n        end\n        2'b10: begin\n            next_state = in ? 2'b00 : 2'b11;\n            out = 0;\n        end\n        2'b11: begin\n            next_state = in ? 2'b10 : 2'b01;\n            out = 1;\n        end\n    endcase\nend\n\nendmodule",
+                "pass": "编译失败: temp.v:12: error: out is not a valid l-value in tb.top_module1.\ntemp.v:5:      : out is declared here as wire.\ntemp.v:16: error: out is not a valid l-value in tb.top_module1.\ntemp.v:5:      : out is declared here as wire.\ntemp.v:20: error: out is not a valid l-value in tb.top_module1.\ntemp.v:5:      : out is declared here as wire.\ntemp.v:24: error: out is not a valid l-value in tb.top_module1.\ntemp.v:5:      : out is declared here as wire.\n4 error(s) during elaboration."
+            }
+        ]
+    },
+    {
+        "module_name": "fsm3onehot",
+        "solutions": [
+            {
+                "solution": "always @* begin\n    case(state)\n        4'b0001: begin\n            next_state = in ? 4'b0010 : 4'b0001;\n            out = 1'b0;\n        end\n        4'b0010: begin\n            next_state = in ? 4'b0100 : 4'b0010;\n            out = 1'b0;\n        end\n        4'b0100: begin\n            next_state = in ? 4'b0001 : 4'b1000;\n            out = 1'b0;\n        end\n        4'b1000: begin\n            next_state = in ? 4'b0100 : 4'b0010;\n            out = 1'b1;\n        end\n        default: begin\n            next_state = 4'b0000;\n            out = 1'b0;\n        end\n    endcase\nend",
+                "pass": "编译失败: temp.v:1: syntax error\nI give up."
+            }
+        ]
+    },
+    {
+        "module_name": "fsm3s",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input in,\n  input reset,\n  output reg out\n);\n\n  parameter A = 2'b00;\n  parameter B = 2'b01;\n  parameter C = 2'b10;\n  parameter D = 2'b11;\n\n  reg [1:0] state, next_state;\n\n  always @(posedge clk) begin\n    if (reset) begin\n      state <= A;\n    end else begin\n      state <= next_state;\n    end\n  end\n\n  always @* begin\n    case(state)\n      A: begin\n        if (in) begin\n          next_state = B;\n        end else begin\n          next_state = A;\n        end\n        out = 1'b0;\n      end\n      B: begin\n        if (in) begin\n          next_state = B;\n        end else begin\n          next_state = C;\n        end\n        out = 1'b0;\n      end\n      C: begin\n        if (in) begin\n          next_state = D;\n        end else begin\n          next_state = A;\n        end\n        out = 1'b0;\n      end\n      D: begin\n        if (in) begin\n          next_state = B;\n        end else begin\n          next_state = C;\n        end\n        out = 1'b1;\n      end\n    endcase\n  end\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "fsm_hdlc",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input reset,\n  input in,\n  output disc,\n  output flag,\n  output err\n);\n\n  reg [2:0] state, next_state;\n\n  always @(posedge clk) begin\n    if (reset) begin\n      state <= 3'b000;\n    end else begin\n      state <= next_state;\n    end\n  end\n\n  always @* begin\n    disc = 1'b0;\n    flag = 1'b0;\n    err = 1'b0;\n    next_state = state;\n    case (state)\n      3'b000: begin\n        if (in) begin\n          next_state = 3'b001;\n        end\n      end\n      3'b001: begin\n        if (in) begin\n          next_state = 3'b010;\n        end else begin\n          next_state = 3'b000;\n        end\n      end\n      3'b010: begin\n        if (in) begin\n          next_state = 3'b011;\n        end else begin\n          next_state = 3'b000;\n        end\n      end\n      3'b011: begin\n        if (in) begin\n          next_state = 3'b100;\n        end else begin\n          next_state = 3'b000;\n        end\n      end\n      3'b100: begin\n        if (in) begin\n          next_state = 3'b101;\n        end else begin\n          next_state = 3'b000;\n        end\n      end\n      3'b101: begin\n        if (in) begin\n          next_state = 3'b110;\n        end else begin\n          next_state = 3'b000;\n        end\n      end\n      3'b110: begin\n        if (in) begin\n          next_state = 3'b111;\n        end else begin\n          next_state = 3'b000;\n        end\n      end\n      3'b111: begin\n        if (in) begin\n          next_state = 3'b111;\n          err = 1'b1;\n        end else begin\n          next_state = 3'b000;\n          flag = 1'b1;\n        end\n      end\n    endcase\n  end\n\nendmodule",
+                "pass": "编译失败: temp.v:21: error: disc is not a valid l-value in tb.top_module1.\ntemp.v:5:      : disc is declared here as wire.\ntemp.v:22: error: flag is not a valid l-value in tb.top_module1.\ntemp.v:6:      : flag is declared here as wire.\ntemp.v:23: error: err is not a valid l-value in tb.top_module1.\ntemp.v:7:      : err is declared here as wire.\ntemp.v:76: error: err is not a valid l-value in tb.top_module1.\ntemp.v:7:      : err is declared here as wire.\ntemp.v:79: error: flag is not a valid l-value in tb.top_module1.\ntemp.v:6:      : flag is declared here as wire.\n5 error(s) during elaboration."
+            }
+        ]
+    },
+    {
+        "module_name": "fsm_onehot",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input in,\n  input [9:0] state,\n  output [9:0] next_state,\n  output out1,\n  output out2\n);\n\n  assign next_state[0] = (state[0] & ~in) | (state[1] & in);\n  assign next_state[1] = (state[1] & ~in) | (state[2] & in);\n  assign next_state[2] = (state[2] & ~in) | (state[3] & in);\n  assign next_state[3] = (state[3] & ~in) | (state[4] & in);\n  assign next_state[4] = (state[4] & ~in) | (state[5] & in);\n  assign next_state[5] = (state[5] & ~in) | (state[8] & in);\n  assign next_state[6] = (state[6] & ~in) | (state[9] & in);\n  assign next_state[7] = (state[7] & ~in) | (state[7] & in);\n  assign next_state[8] = (state[8] & ~in) | (state[1] & in);\n  assign next_state[9] = (state[9] & ~in) | (state[1] & in);\n\n  assign out1 = (state[7] & in) | (state[8] & ~in);\n  assign out2 = state[9] & state[6];\n\nendmodule",
+                "pass": "测试失败: 224个样本中有213个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "fsm_ps2",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input [7:0] in,\n  input reset,\n  output done\n);\n\n  reg [2:0] state;\n  reg [7:0] byte_count;\n  reg [7:0] byte1, byte2, byte3;\n\n  always @(posedge clk) begin\n    if (reset) begin\n      state <= 0;\n      byte_count <= 0;\n      done <= 0;\n    end else begin\n      case (state)\n        0: begin\n          if (in[3] == 1) begin\n            state <= 1;\n            byte1 <= in;\n            byte_count <= 1;\n          end\n        end\n        1: begin\n          byte_count <= byte_count + 1;\n          if (byte_count == 2) begin\n            byte2 <= in;\n            state <= 2;\n          end\n        end\n        2: begin\n          byte_count <= byte_count + 1;\n          if (byte_count == 3) begin\n            byte3 <= in;\n            state <= 0;\n            done <= 1;\n          end\n        end\n      endcase\n    end\n  end\n\nendmodule",
+                "pass": "编译失败: temp.v:16: error: done is not a valid l-value in tb.top_module1.\ntemp.v:5:      : done is declared here as wire.\ntemp.v:38: error: done is not a valid l-value in tb.top_module1.\ntemp.v:5:      : done is declared here as wire.\n2 error(s) during elaboration."
+            }
+        ]
+    },
+    {
+        "module_name": "fsm_ps2data",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input [7:0] in,\n  input reset,\n  output [23:0] out_bytes,\n  output done\n);\n\n  reg [7:0] buffer [2:0];\n  reg [2:0] state;\n  reg [23:0] message;\n  \n  always @(posedge clk) begin\n    if (reset) begin\n      state <= 0;\n      message <= 0;\n    end else begin\n      case (state)\n        0: begin\n          if (in[3] == 1) begin\n            buffer[0] <= in;\n            state <= 1;\n          end\n        end\n        1: begin\n          buffer[1] <= in;\n          state <= 2;\n        end\n        2: begin\n          buffer[2] <= in;\n          message <= {buffer[0], buffer[1], buffer[2]};\n          state <= 3;\n        end\n        3: begin\n          state <= 0;\n        end\n      endcase\n    end\n  end\n  \n  assign out_bytes = done ? message : 24'b0;\n  assign done = (state == 3);\n\nendmodule",
+                "pass": "测试失败: 1619个样本中有664个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "fsm_serial",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input in,\n  input reset,\n  output done\n);\n\n  reg [3:0] state;\n  reg [7:0] data;\n  reg start_bit_detected;\n  reg stop_bit_detected;\n  \n  always @(posedge clk) begin\n    if (reset) begin\n      state <= 4'b0000;\n      data <= 8'b0;\n      start_bit_detected <= 1'b0;\n      stop_bit_detected <= 1'b0;\n    end else begin\n      case (state)\n        4'b0000: begin // Idle state\n          if (in == 1'b0) begin\n            state <= 4'b0001; // Start bit detected\n            data <= 8'b0;\n            start_bit_detected <= 1'b1;\n          end\n        end\n        4'b0001: begin // Data bits\n          data <= {data[6:0], in};\n          state <= 4'b0010;\n        end\n        4'b0010: begin // Data bits\n          data <= {data[6:0], in};\n          state <= 4'b0011;\n        end\n        4'b0011: begin // Data bits\n          data <= {data[6:0], in};\n          state <= 4'b0100;\n        end\n        4'b0100: begin // Data bits\n          data <= {data[6:0], in};\n          state <= 4'b0101;\n        end\n        4'b0101: begin // Data bits\n          data <= {data[6:0], in};\n          state <= 4'b0110;\n        end\n        4'b0110: begin // Data bits\n          data <= {data[6:0], in};\n          state <= 4'b0111;\n        end\n        4'b0111: begin // Data bits\n          data <= {data[6:0], in};\n          state <= 4'b1000;\n        end\n        4'b1000: begin // Data bits\n          data <= {data[6:0], in};\n          state <= 4'b1001;\n        end\n        4'b1001: begin // Stop bit\n          if (in == 1'b1) begin\n            stop_bit_detected <= 1'b1;\n            state <= 4'b0000; // Byte received\n          end\n        end\n      endcase\n    end\n  end\n  \n  assign done = (start_bit_detected & stop_bit_detected);\n  \nendmodule",
+                "pass": "测试失败: 905个样本中有608个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "fsm_serialdata",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input in,\n  input reset,\n  output [7:0] out_byte,\n  output done\n);\n\n  reg [2:0] state;\n  reg [7:0] data_byte;\n  reg [2:0] bit_count;\n  reg start_bit_detected;\n  reg stop_bit_detected;\n\n  always @(posedge clk) begin\n    if (reset) begin\n      state <= 3'b000;\n      data_byte <= 8'b0;\n      bit_count <= 3'b000;\n      start_bit_detected <= 1'b0;\n      stop_bit_detected <= 1'b0;\n    end else begin\n      case (state)\n        3'b000: begin // Idle state\n          if (in == 1'b0) begin\n            state <= 3'b001; // Start bit detected\n            start_bit_detected <= 1'b1;\n            bit_count <= 3'b000;\n          end\n        end\n        3'b001: begin // Data bit receiving state\n          if (bit_count < 3'b100) begin\n            data_byte[bit_count] <= in;\n            bit_count <= bit_count + 1;\n          end else begin\n            state <= 3'b010; // Stop bit expected\n          end\n        end\n        3'b010: begin // Stop bit state\n          if (in == 1'b1) begin\n            stop_bit_detected <= 1'b1;\n            state <= 3'b011; // Done state\n          end\n        end\n        3'b011: begin // Done state\n          if (in == 1'b1) begin\n            done <= 1'b1;\n            out_byte <= data_byte;\n            state <= 3'b000; // Back to idle state\n          end\n        end\n      endcase\n    end\n  end\n\nendmodule",
+                "pass": "编译失败: temp.v:47: error: done is not a valid l-value in tb.top_module1.\ntemp.v:6:      : done is declared here as wire.\ntemp.v:48: error: out_byte is not a valid l-value in tb.top_module1.\ntemp.v:5:      : out_byte is declared here as wire.\n2 error(s) during elaboration."
+            }
+        ]
+    },
+    {
+        "module_name": "gates",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input a,\n  input b,\n  output out_and,\n  output out_or,\n  output out_xor,\n  output out_nand,\n  output out_nor,\n  output out_xnor,\n  output out_anotb\n);\n\nassign out_and = a & b;\nassign out_or = a | b;\nassign out_xor = a ^ b;\nassign out_nand = ~(a & b);\nassign out_nor = ~(a | b);\nassign out_xnor = ~(a ^ b);\nassign out_anotb = a & ~b;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "gates100",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input [99:0] in,\n  output out_and,\n  output out_or,\n  output out_xor\n);\n\nassign out_and = &in;\nassign out_or = |in;\nassign out_xor = ^in;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "gates4",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input [3:0] in,\n  output out_and,\n  output out_or,\n  output out_xor\n);\n\nassign out_and = in[0] & in[1] & in[2] & in[3];\nassign out_or = in[0] | in[1] | in[2] | in[3];\nassign out_xor = in[0] ^ in[1] ^ in[2] ^ in[3];\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "gatesv",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input  [3:0] in,\n  output [3:0] out_both,\n  output [3:0] out_any,\n  output [3:0] out_different\n);\n\n  assign out_both = {in[3] & in[0], in[0] & in[1], in[1] & in[2], in[2] & in[3]};\n  assign out_any = {in[0] | in[1], in[1] | in[2], in[2] | in[3], in[3] | in[0]};\n  assign out_different = {in[3] ^ in[0], in[0] ^ in[1], in[1] ^ in[2], in[2] ^ in[3]};\n\nendmodule",
+                "pass": "测试失败: 213个样本中有119个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "gatesv100",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input  [99:0] in,\n  output [99:0] out_both,\n  output [99:0] out_any,\n  output [99:0] out_different\n);\n\n  genvar i;\n  generate\n    for (i = 0; i < 100; i=i+1) begin : both\n      assign out_both[i] = (i == 0) ? 0 : (in[i] & in[i-1]);\n    end\n  endgenerate\n\n  genvar j;\n  generate\n    for (j = 0; j < 100; j=j+1) begin : any\n      assign out_any[j] = (j == 99) ? 0 : (in[j] | in[j+1]);\n    end\n  endgenerate\n\n  genvar k;\n  generate\n    for (k = 0; k < 100; k=k+1) begin : different\n      assign out_different[k] = (in[k] != in[(k+1) % 100]);\n    end\n  endgenerate\n\nendmodule",
+                "pass": "测试失败: 201个样本中有201个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "gshare",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input areset,\n\n  input predict_valid,\n  input [6:0] predict_pc,\n  output predict_taken,\n  output [6:0] predict_history,\n\n  input train_valid,\n  input train_taken,\n  input train_mispredicted,\n  input [6:0] train_history,\n  input [6:0] train_pc\n);\n\n  reg [1:0] pht [0:127];\n  reg [6:0] global_history = 7'b0;\n\n  always @(posedge clk or posedge areset) begin\n    if (areset) begin\n      global_history <= 7'b0;\n    end else begin\n      if (predict_valid) begin\n        predict_taken <= pht[predict_pc ^ global_history][1];\n        predict_history <= global_history;\n      end\n      if (train_valid) begin\n        pht[train_pc ^ train_history][1] <= train_taken ? \n          (train_mispredicted ? (pht[train_pc ^ train_history][1] == 2 ? 1 : 2) : \n          (pht[train_pc ^ train_history][1] == 3 ? 3 : 2)) : \n          (pht[train_pc ^ train_history][1] == 0 ? 0 : 1);\n        global_history <= {global_history[5:0], train_taken};\n      end\n    end\n  end\n\nendmodule",
+                "pass": "编译失败: temp.v:25: error: predict_taken is not a valid l-value in tb.top_module1.\ntemp.v:7:      : predict_taken is declared here as wire.\ntemp.v:26: error: predict_history is not a valid l-value in tb.top_module1.\ntemp.v:8:      : predict_history is declared here as wire.\n2 error(s) during elaboration."
+            }
+        ]
+    },
+    {
+        "module_name": "hadd",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input a,\n  input b,\n  output sum,\n  output cout\n);\n\n  assign sum = a ^ b;\n  assign cout = a & b;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "history_shift",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input areset,\n  input predict_valid,\n  input predict_taken,\n  output logic [31:0] predict_history,\n\n  input train_mispredicted,\n  input train_taken,\n  input [31:0] train_history\n);\n\n  logic [31:0] history_reg;\n\n  always @(posedge clk or posedge areset) begin\n    if (areset) begin\n      history_reg <= 32'b0;\n    end else begin\n      if (train_mispredicted) begin\n        history_reg <= {train_history[30:0], train_taken};\n      end else if (predict_valid) begin\n        history_reg <= {history_reg[30:0], predict_taken};\n      end\n    end\n  end\n\n  assign predict_history = history_reg;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "kmap1",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input a,\n  input b,\n  input c,\n  output out\n);\n\n  assign out = (a & b) | c;\n\nendmodule",
+                "pass": "测试失败: 219个样本中有57个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "kmap2",
+        "solutions": [
+            {
+                "solution": "  wire w1, w2, w3, w4, w5, w6, w7, w8;\n  \n  assign w1 = ~(a & b & c & d);\n  assign w2 = ~(a & ~b & c & d);\n  assign w3 = ~(~a & b & ~c & d);\n  assign w4 = ~(a & b & ~c & ~d);\n  assign w5 = ~(a & b & ~c & d);\n  assign w6 = ~(a & b & c & ~d);\n  assign w7 = ~(~a & b & c & d);\n  assign w8 = ~(a & ~b & c & ~d);\n  \n  assign out = w1 | w2 | w3 | w4 | w5 | w6 | w7 | w8;",
+                "pass": "编译失败: temp.v:1: syntax error\nI give up."
+            }
+        ]
+    },
+    {
+        "module_name": "kmap3",
+        "solutions": [
+            {
+                "solution": "always @* begin\n    case({c, d, a, b})\n        4'b0000: out = 1;\n        4'b0001: out = 0;\n        4'b0010: out = 1;\n        4'b0011: out = 1;\n        4'b0110: out = 0;\n        4'b0111: out = 0;\n        4'b1000: out = 1;\n        4'b1001: out = 1;\n        4'b1010: out = 1;\n        4'b1011: out = 1;\n        4'b1100: out = 1;\n        4'b1101: out = 1;\n        4'b1110: out = 1;\n        4'b1111: out = 1;\n    endcase\nend",
+                "pass": "编译失败: temp.v:1: syntax error\nI give up."
+            }
+        ]
+    },
+    {
+        "module_name": "kmap4",
+        "solutions": [
+            {
+                "solution": "always @* begin\n    case({c, d})\n        2'b00: out = a ^ b;\n        2'b01: out = a ^ ~b;\n        2'b10: out = ~a ^ b;\n        2'b11: out = ~a ^ ~b;\n    endcase\nend",
+                "pass": "编译失败: temp.v:1: syntax error\nI give up."
+            }
+        ]
+    },
+    {
+        "module_name": "lemmings1",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input areset,\n  input bump_left,\n  input bump_right,\n  output walk_left,\n  output walk_right\n);\n\n  reg [1:0] state, next_state;\n\n  always @(posedge clk or posedge areset) begin\n    if (areset) begin\n      state <= 2'b00; // walk_left\n    end else begin\n      state <= next_state;\n    end\n  end\n\n  always @* begin\n    case (state)\n      2'b00: begin // walk_left\n        if (bump_right) begin\n          next_state = 2'b01; // walk_right\n        end else begin\n          next_state = 2'b00; // walk_left\n        end\n      end\n      2'b01: begin // walk_right\n        if (bump_left) begin\n          next_state = 2'b00; // walk_left\n        end else begin\n          next_state = 2'b01; // walk_right\n        end\n      end\n      default: next_state = 2'b00; // walk_left\n    endcase\n  end\n\n  assign walk_left = (state == 2'b00);\n  assign walk_right = (state == 2'b01);\n\nendmodule",
+                "pass": "测试失败: 229个样本中有186个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "lemmings2",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input areset,\n  input bump_left,\n  input bump_right,\n  input ground,\n  output reg walk_left,\n  output reg walk_right,\n  output reg aaah\n);\n\nenum {WALK_LEFT, WALK_RIGHT, FALLING} state, next_state;\n\nalways @ (posedge clk or posedge areset) begin\n    if (areset) begin\n        state <= WALK_LEFT;\n    end else begin\n        state <= next_state;\n    end\nend\n\nalways @* begin\n    walk_left = 0;\n    walk_right = 0;\n    aaah = 0;\n    \n    case (state)\n        WALK_LEFT: begin\n            if (bump_right) begin\n                next_state = WALK_RIGHT;\n            end else if (!ground) begin\n                next_state = FALLING;\n            end else begin\n                next_state = WALK_LEFT;\n                walk_left = 1;\n            end\n        end\n        WALK_RIGHT: begin\n            if (bump_left) begin\n                next_state = WALK_LEFT;\n            end else if (!ground) begin\n                next_state = FALLING;\n            end else begin\n                next_state = WALK_RIGHT;\n                walk_right = 1;\n            end\n        end\n        FALLING: begin\n            if (ground) begin\n                if (state == WALK_LEFT) begin\n                    walk_left = 1;\n                end else begin\n                    walk_right = 1;\n                end\n                next_state = state;\n            end else begin\n                next_state = FALLING;\n                aaah = 1;\n            end\n        end\n    endcase\nend\n\nendmodule",
+                "pass": "测试失败: 441个样本中有297个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "lemmings3",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input areset,\n  input bump_left,\n  input bump_right,\n  input ground,\n  input dig,\n  output walk_left,\n  output walk_right,\n  output aaah,\n  output digging\n);\n\n  reg [2:0] state, next_state;\n\n  always @(posedge clk or posedge areset) begin\n    if (areset) begin\n      state <= 3'b001; // Initial state: walking left\n    end else begin\n      state <= next_state;\n    end\n  end\n\n  always @* begin\n    case(state)\n      3'b000: begin // Falling state\n        if (ground) begin\n          next_state = 3'b001; // Resume walking in the same direction\n        end else begin\n          next_state = 3'b000; // Continue falling\n        end\n      end\n      3'b001: begin // Walking left state\n        if (bump_right) begin\n          next_state = 3'b010; // Switch to walking right\n        end else if (dig && ground) begin\n          next_state = 3'b100; // Start digging\n        end else begin\n          next_state = 3'b001; // Continue walking left\n        end\n      end\n      3'b010: begin // Walking right state\n        if (bump_left) begin\n          next_state = 3'b001; // Switch to walking left\n        end else if (dig && ground) begin\n          next_state = 3'b100; // Start digging\n        end else begin\n          next_state = 3'b010; // Continue walking right\n        end\n      end\n      3'b100: begin // Digging state\n        if (!ground) begin\n          next_state = 3'b000; // Fall after digging\n        end else begin\n          next_state = 3'b100; // Continue digging\n        end\n      end\n    endcase\n  end\n\n  assign walk_left = (state == 3'b001);\n  assign walk_right = (state == 3'b010);\n  assign aaah = (state == 3'b000);\n  assign digging = (state == 3'b100);\n\nendmodule",
+                "pass": "测试失败: 443个样本中有152个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "lemmings4",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input areset,\n  input bump_left,\n  input bump_right,\n  input ground,\n  input dig,\n  output walk_left,\n  output walk_right,\n  output aaah,\n  output digging\n);\n\n  reg [4:0] state;\n  reg [4:0] next_state;\n\n  always @(posedge clk or posedge areset) begin\n    if (areset) begin\n      state <= 5'b00000;\n    end else begin\n      state <= next_state;\n    end\n  end\n\n  always @* begin\n    next_state = state;\n    walk_left = 0;\n    walk_right = 0;\n    aaah = 0;\n    digging = 0;\n\n    case(state)\n      5'b00000: begin // Initial state, walking left\n        if (bump_right) begin\n          next_state = 5'b00001;\n        end else if (bump_left) begin\n          next_state = 5'b00010;\n        end else if (!ground) begin\n          next_state = 5'b00100;\n        end else if (dig) begin\n          next_state = 5'b01000;\n        end\n        walk_left = 1;\n      end\n      5'b00001: begin // Walking right\n        if (bump_left) begin\n          next_state = 5'b00010;\n        end else if (!ground) begin\n          next_state = 5'b00100;\n        end else if (dig) begin\n          next_state = 5'b01000;\n        end\n        walk_right = 1;\n      end\n      5'b00010: begin // Walking left\n        if (bump_right) begin\n          next_state = 5'b00001;\n        end else if (!ground) begin\n          next_state = 5'b00100;\n        end else if (dig) begin\n          next_state = 5'b01000;\n        end\n        walk_left = 1;\n      end\n      5'b00100: begin // Falling\n        if (ground) begin\n          next_state = 5'b00000;\n        end else if (dig) begin\n          next_state = 5'b01000;\n        end\n        aaah = 1;\n      end\n      5'b01000: begin // Digging\n        if (!ground) begin\n          next_state = 5'b00100;\n        end\n        digging = 1;\n      end\n    endcase\n\n    if (state[4] == 1 && ground) begin\n      walk_left = 0;\n      walk_right = 0;\n      aaah = 0;\n      digging = 0;\n    end\n  end\n\nendmodule",
+                "pass": "编译失败: temp.v:27: error: walk_left is not a valid l-value in tb.top_module1.\ntemp.v:8:      : walk_left is declared here as wire.\ntemp.v:28: error: walk_right is not a valid l-value in tb.top_module1.\ntemp.v:9:      : walk_right is declared here as wire.\ntemp.v:29: error: aaah is not a valid l-value in tb.top_module1.\ntemp.v:10:      : aaah is declared here as wire.\ntemp.v:30: error: digging is not a valid l-value in tb.top_module1.\ntemp.v:11:      : digging is declared here as wire.\ntemp.v:43: error: walk_left is not a valid l-value in tb.top_module1.\ntemp.v:8:      : walk_left is declared here as wire.\ntemp.v:53: error: walk_right is not a valid l-value in tb.top_module1.\ntemp.v:9:      : walk_right is declared here as wire.\ntemp.v:63: error: walk_left is not a valid l-value in tb.top_module1.\ntemp.v:8:      : walk_left is declared here as wire.\ntemp.v:71: error: aaah is not a valid l-value in tb.top_module1.\ntemp.v:10:      : aaah is declared here as wire.\ntemp.v:77: error: digging is not a valid l-value in tb.top_module1.\ntemp.v:11:      : digging is declared here as wire.\ntemp.v:82: error: walk_left is not a valid l-value in tb.top_module1.\ntemp.v:8:      : walk_left is declared here as wire.\ntemp.v:83: error: walk_right is not a valid l-value in tb.top_module1.\ntemp.v:9:      : walk_right is declared here as wire.\ntemp.v:84: error: aaah is not a valid l-value in tb.top_module1.\ntemp.v:10:      : aaah is declared here as wire.\ntemp.v:85: error: digging is not a valid l-value in tb.top_module1.\ntemp.v:11:      : digging is declared here as wire.\n13 error(s) during elaboration."
+            }
+        ]
+    },
+    {
+        "module_name": "lfsr32",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input reset,\n  output reg [31:0] q\n);\n\nalways @(posedge clk) begin\n  if (reset) begin\n    q <= 32'h1;\n  end else begin\n    q <= {q[31] ^ q[22] ^ q[2] ^ q[1], q[31:1]};\n  end\nend\n\nendmodule",
+                "pass": "测试失败: 200000个样本中有199953个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "lfsr5",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input reset,\n  output reg [4:0] q\n);\n\nreg [4:0] lfsr;\n\nalways @(posedge clk) begin\n    if (reset) begin\n        lfsr <= 5'b1;\n    end else begin\n        lfsr <= {lfsr[3]^lfsr[0], lfsr[4:1]};\n    end\nend\n\nassign q = lfsr;\n\nendmodule",
+                "pass": "测试失败: 4443个样本中有3718个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "m2014_q3",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input [3:0] x,\n  output logic f\n);\n  \n  assign f = (x[0] & x[1]) | (~x[0] & x[2]) | (x[1] & x[2] & ~x[3]) | (x[1] & ~x[2] & x[3]);\n  \nendmodule",
+                "pass": "测试失败: 100个样本中有4个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "m2014_q4a",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input d,\n  input ena,\n  output reg q\n);\n\nalways @(posedge ena)\nbegin\n  if (ena)\n    q <= d;\nend\n\nendmodule",
+                "pass": "测试失败: 100个样本中有40个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "m2014_q4b",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input d,\n  input ar,\n  output reg q\n);\n\nalways @(posedge clk or posedge ar)\nbegin\n  if (ar)\n    q <= 1'b0;\n  else\n    q <= d;\nend\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "m2014_q4c",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input d,\n  input r,\n  output reg q\n);\n\nalways @(posedge clk) begin\n    if (r) begin\n        q <= 1'b0;\n    end else begin\n        q <= d;\n    end\nend\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "m2014_q4d",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input in,\n  output reg out\n);\n\nreg d;\nassign out = d;\n\nalways @(posedge clk) begin\n    d <= in ^ out;\nend\n\nendmodule",
+                "pass": "测试失败: 100个样本中有1个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "m2014_q4e",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input in1,\n  input in2,\n  output out\n);\n\n  assign out = ~(in1 | in2);\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "m2014_q4f",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input in1,\n  input in2,\n  output logic out\n);\n\n  assign out = in1 & ~in2;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "m2014_q4g",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input in1,\n  input in2,\n  input in3,\n  output logic out\n);\n\n  assign out = ~(in1 ^ in2) ^ in3;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "m2014_q4h",
+        "solutions": [
+            {
+                "solution": "assign out = in;",
+                "pass": "编译失败: temp.v:1: syntax error\nI give up."
+            }
+        ]
+    },
+    {
+        "module_name": "m2014_q4i",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  output out\n);\n  \n  assign out = 0;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "m2014_q4j",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input [3:0] x,\n  input [3:0] y,\n  output [4:0] sum\n);\n\nwire [3:0] c;\nwire [4:0] s;\n\nFullAdder fa0(x[0], y[0], 1'b0, s[0], c[0]);\nFullAdder fa1(x[1], y[1], c[0], s[1], c[1]);\nFullAdder fa2(x[2], y[2], c[1], s[2], c[2]);\nFullAdder fa3(x[3], y[3], c[2], s[3], c[3]);\n\nassign s[4] = c[3];\nassign sum = s;\n\nendmodule\n\nmodule FullAdder (\n  input a,\n  input b,\n  input cin,\n  output sum,\n  output cout\n);\n\nassign {cout, sum} = a + b + cin;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "m2014_q4k",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input resetn,\n  input in,\n  output out\n);\n\nreg [3:0] shift_reg;\n\nalways @(posedge clk or negedge resetn) begin\n    if (~resetn) begin\n        shift_reg <= 4'b0;\n    end else begin\n        shift_reg <= {in, shift_reg[3:1]};\n    end\nend\n\nassign out = shift_reg[0];\n\nendmodule",
+                "pass": "测试失败: 299个样本中有14个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "m2014_q6",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input reset,\n  input w,\n  output z\n);\n\n  reg [2:0] state, next_state;\n\n  always @(posedge clk) begin\n    if (reset) begin\n      state <= 3'b000;\n    end else begin\n      state <= next_state;\n    end\n  end\n\n  always @* begin\n    case(state)\n      3'b000: begin\n        if (w) begin\n          next_state = 3'b000;\n        end else begin\n          next_state = 3'b001;\n        end\n      end\n      3'b001: begin\n        if (w) begin\n          next_state = 3'b010;\n        end else begin\n          next_state = 3'b011;\n        end\n      end\n      3'b010: begin\n        if (w) begin\n          next_state = 3'b100;\n        end else begin\n          next_state = 3'b011;\n        end\n      end\n      3'b011: begin\n        if (w) begin\n          next_state = 3'b110;\n        end else begin\n          next_state = 3'b001;\n        end\n      end\n      3'b100: begin\n        if (w) begin\n          next_state = 3'b100;\n        end else begin\n          next_state = 3'b011;\n        end\n      end\n      3'b101: begin\n        if (w) begin\n          next_state = 3'b010;\n        end else begin\n          next_state = 3'b011;\n        end\n      end\n      3'b110: begin\n        if (w) begin\n          next_state = 3'b100;\n        end else begin\n          next_state = 3'b011;\n        end\n      end\n    endcase\n  end\n\n  assign z = state[2];\n\nendmodule",
+                "pass": "测试失败: 200个样本中有91个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "m2014_q6b",
+        "solutions": [
+            {
+                "solution": "always @(*) begin\n    case(y)\n        3'b000: Y1 = (w) ? 1'b0 : 1'b0;\n        3'b001: Y1 = (w) ? 1'b1 : 1'b0;\n        3'b010: Y1 = (w) ? 1'b0 : 1'b0;\n        3'b011: Y1 = (w) ? 1'b1 : 1'b0;\n        3'b100: Y1 = (w) ? 1'b0 : 1'b0;\n        3'b101: Y1 = (w) ? 1'b1 : 1'b0;\n        default: Y1 = 1'b0;\n    endcase\nend",
+                "pass": "编译失败: temp.v:1: syntax error\nI give up."
+            }
+        ]
+    },
+    {
+        "module_name": "m2014_q6c",
+        "solutions": [
+            {
+                "solution": "reg Y1, Y3;\n\nalways @(*) begin\n    case(y)\n        6'b000001: begin Y1 = 1'b0; Y3 = 1'b0; end\n        6'b000010: begin Y1 = w; Y3 = 1'b0; end\n        6'b000100: begin Y1 = 1'b0; Y3 = 1'b0; end\n        6'b001000: begin Y1 = 1'b0; Y3 = w; end\n        6'b010000: begin Y1 = 1'b0; Y3 = 1'b0; end\n        6'b100000: begin Y1 = w; Y3 = 1'b0; end\n        default: begin Y1 = 1'b0; Y3 = 1'b0; end\n    endcase\nend\n\nendmodule",
+                "pass": "编译失败: temp.v:3: syntax error\nI give up."
+            }
+        ]
+    },
+    {
+        "module_name": "mt2015_eq2",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input [1:0] A,\n  input [1:0] B,\n  output z\n);\n  \n  assign z = (A == B) ? 1'b1 : 1'b0;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "mt2015_muxdff",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input L,\n  input q_in,\n  input r_in,\n  output reg Q\n);\n\n  always @(posedge clk) begin\n    if (L) begin\n      Q <= r_in;\n    end else begin\n      Q <= {q_in[1] ^ q_in[2], q_in[0], q_in[2]};\n    end\n  end\n\nendmodule",
+                "pass": "编译失败: temp.v:13: error: can not select part of scalar: q_in\ntemp.v:13: error: can not select part of scalar: q_in\ntemp.v:13: error: can not select part of scalar: q_in\ntemp.v:13: error: can not select part of scalar: q_in\ntemp.v:13: error: Concatenation/replication may not have zero width in this context.\n5 error(s) during elaboration."
+            }
+        ]
+    },
+    {
+        "module_name": "mt2015_q4",
+        "solutions": [
+            {
+                "solution": "module A (\n  input x,\n  input y,\n  output z\n);\n  assign z = (x ^ y) & x;\nendmodule\n\nmodule B (\n  input x,\n  input y,\n  output z\n);\n  assign z = (x & ~y) | (x & y);\nendmodule\n\nmodule TopModule (\n  input x,\n  input y,\n  output z\n);\n  wire a_out, b_out;\n  A a1(x, y, a_out);\n  B b1(x, y, b_out);\n  A a2(x, y, z);\n  B b2(x, y, z);\n  assign z = a_out ^ b_out;\nendmodule",
+                "pass": "编译失败: testbench.v:57: vvp.tgt error: uwire \"z_dut\" must have a single driver, found (3).\nerror: Code generation had 1 error(s)."
+            }
+        ]
+    },
+    {
+        "module_name": "mt2015_q4a",
+        "solutions": [
+            {
+                "solution": "assign z = (x ^ y) & x;",
+                "pass": "编译失败: temp.v:1: syntax error\nI give up."
+            }
+        ]
+    },
+    {
+        "module_name": "mt2015_q4b",
+        "solutions": [
+            {
+                "solution": "reg z;\n\nalways @* begin\n    if (x & y)\n        z = 1;\n    else\n        z = x;\nend\n\nassign z = z ^ 1'b1;",
+                "pass": "编译失败: temp.v:3: syntax error\nI give up."
+            }
+        ]
+    },
+    {
+        "module_name": "mux256to1",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input [255:0] in,\n  input [7:0] sel,\n  output  out\n);\n\n  assign out = sel[7] ? in[255] :\n               sel[6] ? in[254] :\n               sel[5] ? in[253] :\n               sel[4] ? in[252] :\n               sel[3] ? in[251] :\n               sel[2] ? in[250] :\n               sel[1] ? in[249] :\n                        in[248];\n\nendmodule",
+                "pass": "测试失败: 2000个样本中有1000个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "mux256to1v",
+        "solutions": [
+            {
+                "solution": "```verilog\nmodule TopModule (\n  input [1023:0] in,\n  input [7:0] sel,\n  output [3:0] out\n);\n\n  reg [3:0] out;\n\n  always @* begin\n    case(sel)\n      8'b00000000: out = in[3:0];\n      8'b00000001: out = in[7:4];\n      8'b00000010: out = in[11:8];\n      8'b00000011: out = in[15:12];\n      8'b00000100: out = in[19:16];\n      8'b00000101: out = in[23:20];\n      8'b00000110: out = in[27:24];\n      8'b00000111: out = in[31:28];\n      8'b00001000: out = in[35:32];\n      8'b00001001: out = in[39:36];\n      8'b00001010: out = in[43:40];\n      8'b00001011: out = in[47:44];\n      8'b00001100: out = in[51:48];\n      8'b00001101: out = in[55:52];\n      8'b00001110: out = in[59:56];\n      8'b00001111: out = in[63:60];\n      8'b00010000: out = in[67:64];\n      8'b00010001: out = in[71:68];\n      8'b00010010: out = in[75:72];\n      8'b00010011: out = in[79:76];\n      8'b00010100: out = in[83:80];\n      8'b00010101: out = in[87:84];\n      8'b00010110: out = in[91:88];\n      8'b00010111: out = in[95:92];\n      8'b00011000: out = in[99:96];\n      8'b00011001: out = in[103:100];\n      8'b00011010: out = in[107:104];\n      8'b00011011: out = in[111:108];\n      8'b00011100: out = in[115:112];\n      8'b00011101: out = in[119:116];\n      8'b00011110: out = in[123:120];\n      8'b00011111: out = in[127:124];\n      8'b00100000: out = in[131:128];\n      8'b00100001: out = in[135:132];\n      8'b00100010: out = in[139:136];\n      8'b00100011: out = in[143:140];\n      8'b00100100: out = in[147:144];\n      8'b00100101: out = in[151:148];\n      8'b00100110: out = in[155:152];\n      8'b00100111: out = in[159:156];\n      8'b00101000: out = in[163:160];\n      8'b00101001: out = in[167:164];\n      8'b00101010: out = in[171:168];\n      8'b00101011: out = in[175:172];\n      8'b00101100: out = in[179:176];\n      8'b00101101: out = in[183:180];\n      8'b00101110: out = in[187:184];\n      8'b00101111: out = in[191:188];\n      8'b00110000: out = in[195:192];\n      8'b00110001: out = in[199:196];\n      8'b00110010: out = in[203:200];\n      8'b00110011: out = in[207:204];\n      8'b00110100: out = in[211:208];\n      8'b00110101: out = in[215:212];\n      8'b00110110: out = in[219:216];\n      8'b00110111: out = in[223:220];\n      8'b00111000: out = in[227:224];\n      8'b00111001: out = in[231:228];\n      8'b00111010: out = in[235:232];\n      8'b00111011: out = in[239:236];\n      8'b00111100: out = in[243:240];\n      8'b00111101: out = in[247:244];\n      8'b00111110: out = in[251:248];\n      8'b00111111: out = in[255:252];\n      8'b01000000: out = in[259:256];\n      8'b01000001: out = in[263:260];\n      8'b01000010: out = in[267:264];\n      8'b01000011: out = in[271:268];\n      8'b01000100: out = in[275:272];\n      8'b01000101: out = in[279:276];\n      8'b01000110: out = in[283:280];\n      8'b01000111: out = in[287:284];\n      8'b01001000: out = in[291:288];\n      8'b01001001: out = in[295:292];\n      8'b01001010: out = in[299:296];\n      8'b01001011: out = in[303:300];\n      8'b01001100: out = in[307:304];\n      8'b01001101: out = in[311:308];\n      8'b01001110: out = in[315:312];\n      8'b01001111: out = in[319:316];\n      8'b01010000: out = in[323:320];\n      8'b01010001: out = in[327:324];\n      8'b01010010: out = in[331:328];\n      8'b01010011: out = in[335:332];\n      8'b01010100: out = in[339:336];\n      8'b01010101: out = in[343:340];\n      8'b01010110: out = in[347:344];\n      8'b01010111: out = in[351:348];\n      8'b01011000: out = in[355:352];\n      8'b01011001: out = in[359:356];\n      8'b01011010: out = in[363:360];\n      8'b01011011: out = in[367:364];\n      8'b01011100: out = in[371:368];\n      8'b01011101: out = in[375:372];\n      8'b01011110: out = in[379:376];\n      8'b01011111: out = in[383:380];\n      8'b01100000: out = in[387:384];\n      8'b01100001: out = in[391:388];\n      8'b01100010: out = in[395:392];\n      8'b01100011: out = in[399:396];\n      8'b01100100: out = in[403:400];\n      8'b01100101: out = in[407:404];\n      8'b01100110: out = in[411:408];\n      8'b01100111: out = in[415:412];\n      8'b01101000: out = in[419:416];\n      8'b01101001: out = in[423:420];\n      8'b01101010: out = in[427:424];\n      8'b01101011: out = in[431:428];\n      8'b01101100: out = in[435:432];\n      8'b01101101: out = in[439:436];\n      8'b01101110: out = in[443:440];\n      8'b01101111: out = in[447:444];\n      8'b01110000: out = in[451:448];\n      8'b01110001: out = in[455:452];\n      8'b01110010: out = in[459:456];\n      8'b01110011: out = in[463:460];\n      8'b01110100: out = in[467:464];\n      8'b01110101: out = in[471:468];\n      8'b01110110: out = in[475:472];\n      8'b01110111: out = in[479:476];\n      8'b01111000: out = in[483:480];\n      8'b01111001: out = in[487:484];\n      8'b01111010: out = in[491:488];\n      8'b01111011: out = in[495:492];\n      8'b01111100: out = in[499:496];\n      8'b01111101: out = in[503:500];\n      8'b01111110: out = in[507:504];\n      8'b01111111: out = in[511:508];\n      8'b10000000: out = in[515:512];\n      8'b10000001: out = in[519:516];\n      8'b10000010: out = in[523:520];\n      8'b10000011: out = in[527:524];\n      8'b10000100: out = in[531:528];\n      8'b10000101: out = in[535:532];\n      8'b10000110: out = in[539:536];\n      8'b10000111: out = in[543:540];\n      8'b10001000: out = in[547:544];\n      8'b10001001: out = in[551:548];\n      8'b10001010: out = in[555:552];\n      8'b10001011: out = in[559:556];\n      8'b10001100: out = in[563:560];\n      8'b10001101: out = in[567:564];\n      8'b10001110: out = in[571:568];\n      8'b10001111: out = in[575:572];\n      8'b10010000: out = in[579:576];\n      8'b10010001: out = in[583:580];\n      8'b10010010: out = in[587:584];\n      8'b10010011: out = in[591:588];\n      8'b10010100: out = in[595:592];\n      8'b10010101: out = in[599:596];\n      8'b10010110: out = in[603:600];\n      8'b10010111: out = in[607:604];\n      8'b10011000: out = in[611:608];\n      8'b10011001: out = in[615:612];\n      8'b10011010: out = in[619:616];\n      8'b10011011: out = in[623:620];\n      8'b10011100: out = in[627:624];\n      8'b10011101: out = in[631:628];\n      8'b10011110: out = in[635:632];\n      8'b10011111: out = in[639:636];\n      8'b10100000: out = in[643:640];\n      8'b10100001: out = in[647:644];\n      8'b10100010: out = in[651:648];\n      8'b10100011: out = in[655:652];\n      8'b10100100: out = in[659:656];\n      8'b10100101: out = in[663:660];\n      8'b10100110: out = in[667:664];\n      8'b10100111: out = in[671:668];\n      8'b10101000: out = in[675:672];\n      8'b10101001: out = in[679:676];\n      8'b10101010: out = in[683:680];\n      8'b10101011: out = in[687:684];\n      8'b10101100: out = in[691:688];\n      8'b10101101: out = in[695:692];\n      8'b10101110: out = in[699:696];\n      8'b10101111: out = in[703:700];\n      8'b10110000: out = in[707:704];\n      8'b10110001: out = in[711:708];\n      8'b10110010: out = in[715:712];\n      8'b10110011: out = in[719:716];\n      8'b10110100: out = in[723:720];\n      8'b10110101: out = in[727:724];\n      8'b10110110: out = in[731:728];\n      8'b10110111: out = in[735:732];\n      8'b10111000: out = in[739:736];\n      8'b10111001: out = in[743:740];\n      8'b10111010: out = in[747:744];\n      8'b10111011: out = in[751:748];\n      8'b10111100: out = in[755:752];\n      8'b10111101: out = in[759:756];\n      8'b10111110: out = in[763:760];\n      8'b10111111: out = in[767:764];\n      8'b11000000: out = in[771:768];\n      8'b11000001: out = in[775:772];\n      8'b11000010: out = in[779:776];\n      8'b11000011: out = in[783:780];\n      8'b11000100: out = in[787:784];\n      8'b11000101: out = in[791:788];\n      8'b11000110: out = in[795:792];\n      8'b11000111: out = in[799:796];\n      8'b11001000: out = in[803:800];\n      8'b11001001: out = in[807:804];\n      8'b11001010: out = in[811:808];\n      8'b11001011: out = in[815:812];\n      8'b11001100: out = in[819:816];\n      8'b11001101: out = in[823:820];\n      8'b11001110: out = in[827:824];\n      8'b11001111: out = in[831:828];\n      8'b11010000: out = in[835:832];\n      8'b11010001: out = in[839:836];\n      8'b11010010: out = in[843:840];\n      8'b11010011: out = in[847:844];\n      8'b11010100: out = in[851:848];\n      8'b11010101: out = in[855:852];\n      8'b11010110: out = in[859:856];\n      8'b11010111: out = in[863:860];\n      8'b11011000: out = in[867:864];\n      8'b11011001: out = in[871:868];\n      8'b11011010: out = in[875:872];\n      8'b11011011: out = in[879:876];\n      8'b11011100: out = in[883:880];\n      8'b11011101: out = in[887:884];\n      8'b11011110: out = in[891:888];\n      8'b11011111: out = in[895:892];\n      8'b11100000: out = in[899:896];\n      8'b11100001: out = in[903:900];\n      8'b11100010: out = in[907:904];\n      8'b11100011: out = in[911:908];\n      8'b11100100: out = in[915:912];\n      8'b11100101: out = in[919:916];\n      8'b11100110: out = in[923:920];\n      8'b11100111: out = in[927:924];\n      8'b11101000: out = in[931:928];\n      8'b11101001: out = in[935:932];\n      8'b11101010: out = in[939:936];\n      8'b11101011: out = in[943:940];\n      8'b11101100: out = in[947:944];\n      8'b11101101: out = in[951:948];\n      8'b11101110: out = in[955:952];\n      8'b11101111: out = in[959:956];\n      8'b11110000: out = in[963:960];\n      8'b11110001: out = in[967:964];\n      8'b11110010: out = in[971:968];\n      8'b11110011: out = in[975:972];\n      8'b11110100: out = in[979:976];\n      8'b11110101: out = in[983:980];\n      8'b11110110: out = in[987:984];\n      8'b11110111: out = in[991:988];\n      8'b11111000: out = in[995:992];\n      8'b11111001: out = in[999:996];\n      8'b11111010: out = in[1003:1000];\n      8'b11111011: out = in[1007:1004];\n      8'b",
+                "pass": "编译失败: temp.v:1: syntax error\nI give up.\ntemp.v:1: warning: macro verilog undefined (and assumed null) at this point."
+            }
+        ]
+    },
+    {
+        "module_name": "mux2to1",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input a,\n  input b,\n  input sel,\n  output out\n);\n\nassign out = (sel == 1) ? b : a;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "mux2to1v",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input [99:0] a,\n  input [99:0] b,\n  input sel,\n  output [99:0] out\n);\n\nassign out = (sel == 1) ? b : a;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "mux9to1v",
+        "solutions": [
+            {
+                "solution": "always_comb begin\n    case(sel)\n        4'b0000: out = a;\n        4'b0001: out = b;\n        4'b0010: out = c;\n        4'b0011: out = d;\n        4'b0100: out = e;\n        4'b0101: out = f;\n        4'b0110: out = g;\n        4'b0111: out = h;\n        4'b1000: out = i;\n        default: out = 16'b1111111111111111;\n    endcase\nend",
+                "pass": "编译失败: temp.v:1: syntax error\nI give up."
+            }
+        ]
+    },
+    {
+        "module_name": "norgate",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input a,\n  input b,\n  output out\n);\n\n  assign out = ~(a | b);\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "notgate",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input in,\n  output out\n);\n  \n  assign out = ~in;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "popcount255",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input [254:0] in,\n  output reg [7:0] out\n);\n\nalways @(*) begin\n  out = in[0] + in[1] + in[2] + in[3] + in[4] + in[5] + in[6] + in[7] + \n        in[8] + in[9] + in[10] + in[11] + in[12] + in[13] + in[14] + in[15] + \n        in[16] + in[17] + in[18] + in[19] + in[20] + in[21] + in[22] + in[23] + \n        in[24] + in[25] + in[26] + in[27] + in[28] + in[29] + in[30] + in[31] + \n        in[32] + in[33] + in[34] + in[35] + in[36] + in[37] + in[38] + in[39] + \n        in[40] + in[41] + in[42] + in[43] + in[44] + in[45] + in[46] + in[47] + \n        in[48] + in[49] + in[50] + in[51] + in[52] + in[53] + in[54] + in[55] + \n        in[56] + in[57] + in[58] + in[59] + in[60] + in[61] + in[62] + in[63] + \n        in[64] + in[65] + in[66] + in[67] + in[68] + in[69] + in[70] + in[71] + \n        in[72] + in[73] + in[74] + in[75] + in[76] + in[77] + in[78] + in[79] + \n        in[80] + in[81] + in[82] + in[83] + in[84] + in[85] + in[86] + in[87] + \n        in[88] + in[89] + in[90] + in[91] + in[92] + in[93] + in[94] + in[95] + \n        in[96] + in[97] + in[98] + in[99] + in[100] + in[101] + in[102] + in[103] + \n        in[104] + in[105] + in[106] + in[107] + in[108] + in[109] + in[110] + in[111] + \n        in[112] + in[113] + in[114] + in[115] + in[116] + in[117] + in[118] + in[119] + \n        in[120] + in[121] + in[122] + in[123] + in[124] + in[125] + in[126] + in[127] + \n        in[128] + in[129] + in[130] + in[131] + in[132] + in[133] + in[134] + in[135] + \n        in[136] + in[137] + in[138] + in[139] + in[140] + in[141] + in[142] + in[143] + \n        in[144] + in[145] + in[146] + in[147] + in[148] + in[149] + in[150] + in[151] + \n        in[152] + in[153] + in[154] + in[155] + in[156] + in[157] + in[158] + in[159] + \n        in[160] + in[161] + in[162] + in[163] + in[164] + in[165] + in[166] + in[167] + \n        in[168] + in[169] + in[170] + in[171] + in[172] + in[173] + in[174] + in[175] + \n        in[176] + in[177] + in[178] + in[179] + in[180] + in[181] + in[182] + in[183] + \n        in[184] + in[185] + in[186] + in[187] + in[188] + in[189] + in[190] + in[191] + \n        in[192] + in[193] + in[194] + in[195] + in[196] + in[197] + in[198] + in[199] + \n        in[200] + in[201] + in[202] + in[203] + in[204] + in[205] + in[206] + in[207] + \n        in[208] + in[209] + in[210] + in[211] + in[212] + in[213] + in[214] + in[215] + \n        in[216] + in[217] + in[218] + in[219] + in[220] + in[221] + in[222] + in[223] + \n        in[224] + in[225] + in[226] + in[227] + in[228] + in[229] + in[230] + in[231] + \n        in[232] + in[233] + in[234] + in[235] + in[236] + in[237] + in[238] + in[239] + \n        in[240] + in[241] + in[242] + in[243] + in[244] + in[245] + in[246] + in[247] + \n        in[248] + in[249] + in[250] + in[251] + in[252] + in[253] + in[254];\nend\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "popcount3",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input [2:0] in,\n  output [1:0] out\n);\n\n  assign out[0] = in[0] ^ in[1] ^ in[2];\n  assign out[1] = in[0] & in[1] | in[0] & in[2] | in[1] & in[2];\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "reduction",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input [7:0] in,\n  output parity\n);\n\nreg parity;\n\nalways @* begin\n  parity = in[0] ^ in[1] ^ in[2] ^ in[3] ^ in[4] ^ in[5] ^ in[6] ^ in[7];\nend\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "review2015_count1k",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input reset,\n  output reg [9:0] q\n);\n\nalways @(posedge clk) begin\n  if (reset) begin\n    q <= 10'b0;\n  end else begin\n    if (q == 10'd999) begin\n      q <= 10'b0;\n    end else begin\n      q <= q + 1;\n    end\n  end\nend\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "review2015_fancytimer",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input wire clk,\n  input wire reset,\n  input wire data,\n  output wire [3:0] count,\n  output reg counting,\n  output reg done,\n  input wire ack\n);\n\nreg [3:0] delay;\nreg [3:0] counter;\nreg [3:0] remaining_time;\nreg [3:0] state;\nreg [3:0] next_state;\n\nparameter IDLE = 4'b0000;\nparameter DETECT_PATTERN = 4'b0001;\nparameter READ_DELAY = 4'b0010;\nparameter COUNTING = 4'b0011;\nparameter DONE = 4'b0100;\n\nalways @ (posedge clk) begin\n  if (reset) begin\n    state <= IDLE;\n    counting <= 0;\n    done <= 0;\n    delay <= 4'b0000;\n    counter <= 4'b0000;\n    remaining_time <= 4'b0000;\n  end else begin\n    case (state)\n      IDLE: begin\n        if (data == 1 && $past(data) == 1 && $past($past(data)) == 0) begin\n          state <= DETECT_PATTERN;\n        end\n      end\n      DETECT_PATTERN: begin\n        if (data == 1 && $past(data) == 1 && $past($past(data)) == 0) begin\n          state <= READ_DELAY;\n          counter <= 4'b0000;\n        end\n      end\n      READ_DELAY: begin\n        if (counter < 4) begin\n          delay[counter] <= data;\n          counter <= counter + 1;\n        end else begin\n          state <= COUNTING;\n          counting <= 1;\n          counter <= 4'b0000;\n          remaining_time <= delay;\n        end\n      end\n      COUNTING: begin\n        if (counter < (delay + 1) * 1000) begin\n          counter <= counter + 1;\n          if (counter % 1000 == 0) begin\n            remaining_time <= remaining_time - 1;\n          end\n        end else begin\n          state <= DONE;\n          counting <= 0;\n          done <= 1;\n        end\n      end\n      DONE: begin\n        if (ack) begin\n          state <= IDLE;\n          done <= 0;\n        end\n      end\n    endcase\n  end\nend\n\nassign count = remaining_time;\n\nendmodule",
+                "pass": "编译失败: testbench.v:121: sorry: This cast operation is not yet supported.\ntestbench.v:122: sorry: This cast operation is not yet supported.\ntestbench.v:123: sorry: This cast operation is not yet supported.\ntestbench.v:124: sorry: This cast operation is not yet supported.\ntestbench.v:129: sorry: This cast operation is not yet supported.\ntestbench.v:130: sorry: This cast operation is not yet supported.\ntestbench.v:131: sorry: This cast operation is not yet supported.\n7 error(s) during elaboration."
+            }
+        ]
+    },
+    {
+        "module_name": "review2015_fsm",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input reset,\n  input data,\n  input done_counting,\n  input ack,\n  output reg shift_ena,\n  output reg counting,\n  output reg done\n);\n\ntypedef enum logic [2:0] {\n    IDLE,\n    DETECT_PATTERN,\n    SHIFT_IN,\n    WAIT_COUNTING,\n    DONE\n} state_t;\n\nreg [2:0] state, next_state;\n\nalways @(posedge clk) begin\n    if (reset) begin\n        state <= IDLE;\n    end else begin\n        state <= next_state;\n    end\nend\n\nalways @* begin\n    next_state = state;\n    shift_ena = 0;\n    counting = 0;\n    done = 0;\n\n    case (state)\n        IDLE: begin\n            if (data == 1 && $past(data) == 1 && $past($past(data)) == 0) begin\n                next_state = DETECT_PATTERN;\n            end\n        end\n        DETECT_PATTERN: begin\n            if (data == 1 && $past(data) == 1 && $past($past(data)) == 0) begin\n                next_state = SHIFT_IN;\n            end\n        end\n        SHIFT_IN: begin\n            shift_ena = 1;\n            next_state = WAIT_COUNTING;\n        end\n        WAIT_COUNTING: begin\n            counting = 1;\n            if (done_counting) begin\n                next_state = DONE;\n            end\n        end\n        DONE: begin\n            done = 1;\n            if (ack) begin\n                next_state = IDLE;\n            end\n        end\n    endcase\nend\n\nendmodule",
+                "pass": "编译失败: testbench.v:101: sorry: This cast operation is not yet supported.\ntestbench.v:102: sorry: This cast operation is not yet supported.\ntestbench.v:103: sorry: This cast operation is not yet supported.\ntestbench.v:104: sorry: This cast operation is not yet supported.\ntestbench.v:109: sorry: This cast operation is not yet supported.\ntestbench.v:110: sorry: This cast operation is not yet supported.\ntestbench.v:111: sorry: This cast operation is not yet supported.\n7 error(s) during elaboration."
+            }
+        ]
+    },
+    {
+        "module_name": "review2015_fsmonehot",
+        "solutions": [
+            {
+                "solution": "assign B3_next = (state == 10'b0000001000);\nassign S_next = (state == 10'b0000000001);\nassign S1_next = (state == 10'b0000000010);\nassign Count_next = (state == 10'b1000000000);\nassign Wait_next = (state == 10'b0100000000);\n\nassign done = (state == 10'b0100000000) & ack;\nassign counting = (state == 10'b1000000000) & ~done_counting;\nassign shift_ena = (state >= 10'b0000001000) & (state <= 10'b0000001100);",
+                "pass": "编译失败: temp.v:1: syntax error\nI give up."
+            }
+        ]
+    },
+    {
+        "module_name": "review2015_fsmseq",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input reset,\n  input data,\n  output start_shifting\n);\n\nreg [3:0] state;\nreg start_shifting_reg;\n\nalways @(posedge clk) begin\n  if (reset) begin\n    state <= 4'b0000;\n    start_shifting_reg <= 1'b0;\n  end else begin\n    case(state)\n      4'b0000: begin\n        if (data) state <= 4'b0001;\n      end\n      4'b0001: begin\n        if (data) state <= 4'b0010;\n        else state <= 4'b0000;\n      end\n      4'b0010: begin\n        if (data) state <= 4'b0011;\n        else state <= 4'b0000;\n      end\n      4'b0011: begin\n        if (~data) state <= 4'b0000;\n        else begin\n          state <= 4'b0100;\n          start_shifting_reg <= 1'b1;\n        end\n      end\n      4'b0100: begin\n        start_shifting_reg <= 1'b1;\n      end\n    endcase\n  end\nend\n\nassign start_shifting = start_shifting_reg;\n\nendmodule",
+                "pass": "测试失败: 643个样本中有210个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "review2015_fsmshift",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input reset,\n  output shift_ena\n);\n\nreg [2:0] count;\nreg shift_ena_reg;\n\nalways @(posedge clk) begin\n  if (reset) begin\n    count <= 3'b111;\n    shift_ena_reg <= 1'b1;\n  end else begin\n    if (count > 0) begin\n      count <= count - 1;\n      shift_ena_reg <= 1'b1;\n    end else begin\n      shift_ena_reg <= 1'b0;\n    end\n  end\nend\n\nassign shift_ena = shift_ena_reg;\n\nendmodule",
+                "pass": "测试失败: 200个样本中有8个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "review2015_shiftcount",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input shift_ena,\n  input count_ena,\n  input data,\n  output reg [3:0] q\n);\n\nreg [3:0] shift_reg;\n\nalways @(posedge clk) begin\n  if (shift_ena) begin\n    shift_reg <= {shift_reg[2:0], data};\n  end\n  if (count_ena) begin\n    shift_reg <= shift_reg - 1;\n  end\nend\n\nassign q = shift_reg;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "ringer",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input ring,\n  input vibrate_mode,\n  output ringer,\n  output motor\n);\n\n  assign ringer = ~vibrate_mode & ring;\n  assign motor = vibrate_mode & ring;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "rotate100",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input load,\n  input [1:0] ena,\n  input [99:0] data,\n  output reg [99:0] q\n);\n\nalways @(posedge clk) begin\n    if (load) begin\n        q <= data;\n    end else begin\n        case (ena)\n            2'b01: q <= {q[0], q[99:1]};\n            2'b10: q <= {q[98:0], q[99]};\n            default: q <= q;\n        endcase\n    end\nend\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "rule110",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input load,\n  input [511:0] data,\n  output reg [511:0] q\n);\n\nreg [511:0] next_q;\n\nalways @(posedge clk) begin\n    if (load) begin\n        q <= data;\n    end else begin\n        next_q[0] = (q[1] & q[0]) | (~q[1] & ~q[0]);\n        next_q[511] = (~q[510] & ~q[511]) | (q[510] & q[511]);\n        for (int i = 1; i < 511; i = i + 1) begin\n            next_q[i] = ((q[i-1] & q[i] & q[i+1]) | (~q[i-1] & q[i] & ~q[i+1]) | (~q[i-1] & ~q[i] & q[i+1]) | (~q[i-1] & ~q[i] & ~q[i+1]));\n        end\n        q <= next_q;\n    end\nend\n\nendmodule",
+                "pass": "仿真错误: 仿真超时"
+            }
+        ]
+    },
+    {
+        "module_name": "rule90",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input load,\n  input [511:0] data,\n  output reg [511:0] q\n);\n\nreg [511:0] next_q;\n\nalways @(posedge clk) begin\n  if (load) begin\n    q <= data;\n  end else begin\n    next_q[0] = q[1] ^ q[0];\n    next_q[511] = q[510] ^ q[511];\n    for (int i = 1; i < 511; i = i + 1) begin\n      next_q[i] = q[i-1] ^ q[i+1];\n    end\n    q <= next_q;\n  end\nend\n\nendmodule",
+                "pass": "测试失败: 7121个样本中有6540个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "shift18",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input load,\n  input ena,\n  input [1:0] amount,\n  input [63:0] data,\n  output reg [63:0] q\n);\n\nreg [63:0] shift_reg;\n\nalways @(posedge clk) begin\n  if (load) begin\n    shift_reg <= data;\n  end else if (ena) begin\n    case(amount)\n      2'b00: shift_reg <= {shift_reg[62:0], shift_reg[63]};\n      2'b01: shift_reg <= {shift_reg[55:0], data[63:56]};\n      2'b10: shift_reg <= {shift_reg[63], shift_reg[63:1]};\n      2'b11: shift_reg <= {data[7:0], shift_reg[63:8]};\n    endcase\n  end\nend\n\nassign q = shift_reg;\n\nendmodule",
+                "pass": "测试失败: 4041个样本中有3830个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "shift4",
+        "solutions": [
+            {
+                "solution": "always @(posedge clk or posedge areset)\nbegin\n    if (areset)\n        q <= 4'b0000;\n    else if (load)\n        q <= data;\n    else if (ena)\n        q <= {1'b0, q[3:1]};\nend",
+                "pass": "编译失败: temp.v:1: syntax error\nI give up."
+            }
+        ]
+    },
+    {
+        "module_name": "step_one",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  output reg one\n);\n\nalways @(*) begin\n    one = 1;\nend\n\nendmodule",
+                "pass": "测试失败: 20个样本中有20个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "thermostat",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input mode,\n  input too_cold,\n  input too_hot,\n  input fan_on,\n  output heater,\n  output aircon,\n  output fan\n);\n\n  assign heater = (mode & too_cold) | fan_on;\n  assign aircon = (~mode & too_hot) | fan_on;\n  assign fan = heater | aircon | fan_on;\n\nendmodule",
+                "pass": "测试失败: 248个样本中有116个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "timer",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input clk,\n  input load,\n  input [9:0] data,\n  output tc\n);\n\nreg [9:0] counter;\nreg tc_reg;\n\nalways @(posedge clk) begin\n  if (load == 1) begin\n    counter <= data;\n  end else begin\n    if (counter > 0) begin\n      counter <= counter - 1;\n    end\n  end\n\n  if (counter == 0) begin\n    tc_reg <= 1;\n  end else begin\n    tc_reg <= 0;\n  end\nend\n\nassign tc = tc_reg;\n\nendmodule",
+                "pass": "测试失败: 7127个样本中有248个不匹配"
+            }
+        ]
+    },
+    {
+        "module_name": "truthtable1",
+        "solutions": [
+            {
+                "solution": "assign f = (x3 & ~x2 & x1) | (~x3 & x2 & ~x1) | (~x3 & x2 & x1) | (x3 & x2 & x1);",
+                "pass": "编译失败: temp.v:1: syntax error\nI give up."
+            }
+        ]
+    },
+    {
+        "module_name": "vector0",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input [2:0] vec,\n  output [2:0] outv,\n  output o2,\n  output o1,\n  output o0\n);\n\nassign {o2, o1, o0} = vec;\nassign outv = vec;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "vector1",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input [15:0] in,\n  output [7:0] out_hi,\n  output [7:0] out_lo\n);\n\nassign out_hi = in[15:8];\nassign out_lo = in[7:0];\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "vector100r",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input [99:0] in,\n  output reg [99:0] out\n);\n\ninteger i;\n\nalways @(*) begin\n  for(i=0; i<100; i=i+1) begin\n    out[i] = in[99-i];\n  end\nend\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "vector2",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input [31:0] in,\n  output [31:0] out\n);\n\n  assign out = {in[7:0], in[15:8], in[23:16], in[31:24]};\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "vector3",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input [4:0] a,\n  input [4:0] b,\n  input [4:0] c,\n  input [4:0] d,\n  input [4:0] e,\n  input [4:0] f,\n  output [7:0] w,\n  output [7:0] x,\n  output [7:0] y,\n  output [7:0] z\n);\n\n  assign {a, b, c, d, e, f, 2'b11} = {a, b, c, d, e, f, 2'b11};\n\nendmodule",
+                "pass": "编译失败: temp.v:14: error: expression not valid in assign l-value: 2'd3\n1 error(s) during elaboration."
+            }
+        ]
+    },
+    {
+        "module_name": "vector4",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input [7:0] in,\n  output [31:0] out\n);\n  \n  assign out = {{24{in[7]}}, in};\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "vector5",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input a,\n  input b,\n  input c,\n  input d,\n  input e,\n  output [24:0] out\n);\n\n  assign out[24] = ~a ^ a;\n  assign out[23] = ~a ^ b;\n  assign out[22] = ~a ^ c;\n  assign out[21] = ~a ^ d;\n  assign out[20] = ~a ^ e;\n  assign out[19] = ~b ^ a;\n  assign out[18] = ~b ^ b;\n  assign out[17] = ~b ^ c;\n  assign out[16] = ~b ^ d;\n  assign out[15] = ~b ^ e;\n  assign out[14] = ~c ^ a;\n  assign out[13] = ~c ^ b;\n  assign out[12] = ~c ^ c;\n  assign out[11] = ~c ^ d;\n  assign out[10] = ~c ^ e;\n  assign out[9] = ~d ^ a;\n  assign out[8] = ~d ^ b;\n  assign out[7] = ~d ^ c;\n  assign out[6] = ~d ^ d;\n  assign out[5] = ~d ^ e;\n  assign out[4] = ~e ^ a;\n  assign out[3] = ~e ^ b;\n  assign out[2] = ~e ^ c;\n  assign out[1] = ~e ^ d;\n  assign out[0] = ~e ^ e;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "vectorgates",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input [2:0] a,\n  input [2:0] b,\n  output [2:0] out_or_bitwise,\n  output out_or_logical,\n  output [5:0] out_not\n);\n\n  assign out_or_bitwise = a | b;\n  assign out_or_logical = |{a, b};\n  assign out_not = ~{b, a};\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "vectorr",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input [7:0] in,\n  output [7:0] out\n);\n\n  reg [7:0] temp;\n\n  always @(*) begin\n    for (int i = 0; i < 8; i = i + 1) begin\n      temp[i] = in[7-i];\n    end\n  end\n\n  assign out = temp;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "wire",
+        "solutions": [
+            {
+                "solution": "assign out = in;",
+                "pass": "编译失败: temp.v:1: syntax error\nI give up."
+            }
+        ]
+    },
+    {
+        "module_name": "wire4",
+        "solutions": [
+            {
+                "solution": "assign w = a;\nassign x = b;\nassign y = b;\nassign z = c;",
+                "pass": "编译失败: temp.v:1: syntax error\nI give up."
+            }
+        ]
+    },
+    {
+        "module_name": "wire_decl",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input a,\n  input b,\n  input c,\n  input d,\n  output out,\n  output out_n\n);\n\n  wire and1_out, and2_out;\n\n  assign and1_out = a & b;\n  assign and2_out = c & d;\n  assign out = and1_out | and2_out;\n  assign out_n = ~out;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "xnorgate",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  input a,\n  input b,\n  output out\n);\n\n  assign out = ~(a ^ b);\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "zero",
+        "solutions": [
+            {
+                "solution": "module TopModule (\n  output zero\n);\n  \n  assign zero = 0;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    }
+]

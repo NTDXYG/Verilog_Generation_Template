@@ -1,0 +1,452 @@
+[
+    {
+        "module_name": "accu",
+        "solutions": [
+            {
+                "solution": "module accu(\n    input               clk         ,   \n    input               rst_n       ,\n    input       [7:0]   data_in     ,\n    input               valid_in     ,\n \n    output  reg         valid_out     ,\n    output  reg [9:0]   data_out\n);\n\nreg [31:0] accumulator;\nreg [3:0] count;\n\nalways @(posedge clk or negedge rst_n) begin\n    if (~rst_n) begin\n        accumulator <= 10'b0;\n        count <= 4'b0;\n        valid_out <= 1'b0;\n    end else begin\n        if (valid_in) begin\n            accumulator <= accumulator + data_in;\n            count <= count + 1;\n            if (count == 4) begin\n                data_out <= accumulator;\n                valid_out <= 1'b1;\n                accumulator <= 10'b0;\n                count <= 4'b0;\n            end\n        end\n    end\nend\n\nendmodule",
+                "pass": "测试失败: 未通过测试用例"
+            }
+        ]
+    },
+    {
+        "module_name": "adder_16bit",
+        "solutions": [
+            {
+                "solution": "module adder_8bit (\n    input wire [7:0] a,\n    input wire [7:0] b,\n    input wire Cin,\n    output wire [7:0] y,\n    output wire Co\n);\n\n    assign {Co, y} = a + b + Cin;\n\nendmodule\n\nmodule adder_16bit (\n    input wire [15:0] a,\n    input wire [15:0] b,\n    input wire Cin,\n    output wire [15:0] y,\n    output wire Co\n);\n\n    wire [7:0] carry;\n    wire [7:0] sum;\n\n    adder_8bit adder0 (.a(a[7:0]), .b(b[7:0]), .Cin(Cin), .y(y[7:0]), .Co(carry[0]));\n    adder_8bit adder1 (.a(a[15:8]), .b(b[15:8]), .Cin(carry[0]), .y(y[15:8]), .Co(Co));\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "adder_32bit",
+        "solutions": [
+            {
+                "solution": "module cla_16bit(A,B,S,C);\n    input [16:1] A;\n    input [16:1] B;\n    output [16:1] S;\n    output C;\n\n    wire P,G;\n    wire [16:1] C_propagate, C_generate;\n\n    assign P = A ^ B;\n    assign G = A & B;\n\n    assign C_propagate[1] = A[1] & B[1];\n    assign C_generate[1] = A[1] | B[1];\n\n    genvar i;\n    generate\n        for(i=2; i<=16; i=i+1) begin: gen_loop\n            assign C_propagate[i] = G[i-1] | (P[i-1] & C_propagate[i-1]);\n            assign C_generate[i] = P[i-1] & C_generate[i-1];\n        end\n    endgenerate\n\n    assign S = A + B + {C_propagate[16], C_propagate[15:1]};\n    assign C = C_generate[16];\nendmodule\n\nmodule adder_32bit(A,B,S,C32);\n    input [32:1] A;\n    input [32:1] B;\n    output [32:1] S;\n    output C32;\n\n    wire [16:1] S1, S2;\n    wire C1;\n\n    cla_16bit cla1(.A(A[16:1]), .B(B[16:1]), .S(S1), .C(C1));\n    cla_16bit cla2(.A(A[32:17]), .B(B[32:17]), .S(S2), .C(C32));\n\n    assign S = {C1, S1} + {C32, S2};\nendmodule",
+                "pass": "编译失败: temp.v:19: error: can not select part of scalar: G\ntemp.v:19: error: can not select part of scalar: P\ntemp.v:19: error: Unable to elaborate r-value: (G[(i)-('sd1)])|((P[(i)-('sd1)])&(C_propagate[(i)-('sd1)]))\ntemp.v:20: error: can not select part of scalar: P\ntemp.v:20: error: Unable to elaborate r-value: (P[(i)-('sd1)])&(C_generate[(i)-('sd1)])\ntemp.v:19: error: can not select part of scalar: G\ntemp.v:19: error: can not select part of scalar: P\ntemp.v:19: error: Unable to elaborate r-value: (G[(i)-('sd1)])|((P[(i)-('sd1)])&(C_propagate[(i)-('sd1)]))\ntemp.v:20: error: can not select part of scalar: P\ntemp.v:20: error: Unable to elaborate r-value: (P[(i)-('sd1)])&(C_generate[(i)-('sd1)])\ntemp.v:19: error: can not select part of scalar: G\ntemp.v:19: error: can not select part of scalar: P\ntemp.v:19: error: Unable to elaborate r-value: (G[(i)-('sd1)])|((P[(i)-('sd1)])&(C_propagate[(i)-('sd1)]))\ntemp.v:20: error: can not select part of scalar: P\ntemp.v:20: error: Unable to elaborate r-value: (P[(i)-('sd1)])&(C_generate[(i)-('sd1)])\ntemp.v:19: error: can not select part of scalar: G\ntemp.v:19: error: can not select part of scalar: P\ntemp.v:19: error: Unable to elaborate r-value: (G[(i)-('sd1)])|((P[(i)-('sd1)])&(C_propagate[(i)-('sd1)]))\ntemp.v:20: error: can not select part of scalar: P\ntemp.v:20: error: Unable to elaborate r-value: (P[(i)-('sd1)])&(C_generate[(i)-('sd1)])\ntemp.v:19: error: can not select part of scalar: G\ntemp.v:19: error: can not select part of scalar: P\ntemp.v:19: error: Unable to elaborate r-value: (G[(i)-('sd1)])|((P[(i)-('sd1)])&(C_propagate[(i)-('sd1)]))\ntemp.v:20: error: can not select part of scalar: P\ntemp.v:20: error: Unable to elaborate r-value: (P[(i)-('sd1)])&(C_generate[(i)-('sd1)])\ntemp.v:19: error: can not select part of scalar: G\ntemp.v:19: error: can not select part of scalar: P\ntemp.v:19: error: Unable to elaborate r-value: (G[(i)-('sd1)])|((P[(i)-('sd1)])&(C_propagate[(i)-('sd1)]))\ntemp.v:20: error: can not select part of scalar: P\ntemp.v:20: error: Unable to elaborate r-value: (P[(i)-('sd1)])&(C_generate[(i)-('sd1)])\ntemp.v:19: error: can not select part of scalar: G\ntemp.v:19: error: can not select part of scalar: P\ntemp.v:19: error: Unable to elaborate r-value: (G[(i)-('sd1)])|((P[(i)-('sd1)])&(C_propagate[(i)-('sd1)]))\ntemp.v:20: error: can not select part of scalar: P\ntemp.v:20: error: Unable to elaborate r-value: (P[(i)-('sd1)])&(C_generate[(i)-('sd1)])\ntemp.v:19: error: can not select part of scalar: G\ntemp.v:19: error: can not select part of scalar: P\ntemp.v:19: error: Unable to elaborate r-value: (G[(i)-('sd1)])|((P[(i)-('sd1)])&(C_propagate[(i)-('sd1)]))\ntemp.v:20: error: can not select part of scalar: P\ntemp.v:20: error: Unable to elaborate r-value: (P[(i)-('sd1)])&(C_generate[(i)-('sd1)])\ntemp.v:19: error: can not select part of scalar: G\ntemp.v:19: error: can not select part of scalar: P\ntemp.v:19: error: Unable to elaborate r-value: (G[(i)-('sd1)])|((P[(i)-('sd1)])&(C_propagate[(i)-('sd1)]))\ntemp.v:20: error: can not select part of scalar: P\ntemp.v:20: error: Unable to elaborate r-value: (P[(i)-('sd1)])&(C_generate[(i)-('sd1)])\ntemp.v:19: error: can not select part of scalar: G\ntemp.v:19: error: can not select part of scalar: P\ntemp.v:19: error: Unable to elaborate r-value: (G[(i)-('sd1)])|((P[(i)-('sd1)])&(C_propagate[(i)-('sd1)]))\ntemp.v:20: error: can not select part of scalar: P\ntemp.v:20: error: Unable to elaborate r-value: (P[(i)-('sd1)])&(C_generate[(i)-('sd1)])\ntemp.v:19: error: can not select part of scalar: G\ntemp.v:19: error: can not select part of scalar: P\ntemp.v:19: error: Unable to elaborate r-value: (G[(i)-('sd1)])|((P[(i)-('sd1)])&(C_propagate[(i)-('sd1)]))\ntemp.v:20: error: can not select part of scalar: P\ntemp.v:20: error: Unable to elaborate r-value: (P[(i)-('sd1)])&(C_generate[(i)-('sd1)])\ntemp.v:19: error: can not select part of scalar: G\ntemp.v:19: error: can not select part of scalar: P\ntemp.v:19: error: Unable to elaborate r-value: (G[(i)-('sd1)])|((P[(i)-('sd1)])&(C_propagate[(i)-('sd1)]))\ntemp.v:20: error: can not select part of scalar: P\ntemp.v:20: error: Unable to elaborate r-value: (P[(i)-('sd1)])&(C_generate[(i)-('sd1)])\ntemp.v:19: error: can not select part of scalar: G\ntemp.v:19: error: can not select part of scalar: P\ntemp.v:19: error: Unable to elaborate r-value: (G[(i)-('sd1)])|((P[(i)-('sd1)])&(C_propagate[(i)-('sd1)]))\ntemp.v:20: error: can not select part of scalar: P\ntemp.v:20: error: Unable to elaborate r-value: (P[(i)-('sd1)])&(C_generate[(i)-('sd1)])\ntemp.v:19: error: can not select part of scalar: G\ntemp.v:19: error: can not select part of scalar: P\ntemp.v:19: error: Unable to elaborate r-value: (G[(i)-('sd1)])|((P[(i)-('sd1)])&(C_propagate[(i)-('sd1)]))\ntemp.v:20: error: can not select part of scalar: P\ntemp.v:20: error: Unable to elaborate r-value: (P[(i)-('sd1)])&(C_generate[(i)-('sd1)])\ntemp.v:19: error: can not select part of scalar: G\ntemp.v:19: error: can not select part of scalar: P\ntemp.v:19: error: Unable to elaborate r-value: (G[(i)-('sd1)])|((P[(i)-('sd1)])&(C_propagate[(i)-('sd1)]))\ntemp.v:20: error: can not select part of scalar: P\ntemp.v:20: error: Unable to elaborate r-value: (P[(i)-('sd1)])&(C_generate[(i)-('sd1)])\ntemp.v:19: error: can not select part of scalar: G\ntemp.v:19: error: can not select part of scalar: P\ntemp.v:19: error: Unable to elaborate r-value: (G[(i)-('sd1)])|((P[(i)-('sd1)])&(C_propagate[(i)-('sd1)]))\ntemp.v:20: error: can not select part of scalar: P\ntemp.v:20: error: Unable to elaborate r-value: (P[(i)-('sd1)])&(C_generate[(i)-('sd1)])\ntemp.v:19: error: can not select part of scalar: G\ntemp.v:19: error: can not select part of scalar: P\ntemp.v:19: error: Unable to elaborate r-value: (G[(i)-('sd1)])|((P[(i)-('sd1)])&(C_propagate[(i)-('sd1)]))\ntemp.v:20: error: can not select part of scalar: P\ntemp.v:20: error: Unable to elaborate r-value: (P[(i)-('sd1)])&(C_generate[(i)-('sd1)])\ntemp.v:19: error: can not select part of scalar: G\ntemp.v:19: error: can not select part of scalar: P\ntemp.v:19: error: Unable to elaborate r-value: (G[(i)-('sd1)])|((P[(i)-('sd1)])&(C_propagate[(i)-('sd1)]))\ntemp.v:20: error: can not select part of scalar: P\ntemp.v:20: error: Unable to elaborate r-value: (P[(i)-('sd1)])&(C_generate[(i)-('sd1)])\ntemp.v:19: error: can not select part of scalar: G\ntemp.v:19: error: can not select part of scalar: P\ntemp.v:19: error: Unable to elaborate r-value: (G[(i)-('sd1)])|((P[(i)-('sd1)])&(C_propagate[(i)-('sd1)]))\ntemp.v:20: error: can not select part of scalar: P\ntemp.v:20: error: Unable to elaborate r-value: (P[(i)-('sd1)])&(C_generate[(i)-('sd1)])\ntemp.v:19: error: can not select part of scalar: G\ntemp.v:19: error: can not select part of scalar: P\ntemp.v:19: error: Unable to elaborate r-value: (G[(i)-('sd1)])|((P[(i)-('sd1)])&(C_propagate[(i)-('sd1)]))\ntemp.v:20: error: can not select part of scalar: P\ntemp.v:20: error: Unable to elaborate r-value: (P[(i)-('sd1)])&(C_generate[(i)-('sd1)])\ntemp.v:19: error: can not select part of scalar: G\ntemp.v:19: error: can not select part of scalar: P\ntemp.v:19: error: Unable to elaborate r-value: (G[(i)-('sd1)])|((P[(i)-('sd1)])&(C_propagate[(i)-('sd1)]))\ntemp.v:20: error: can not select part of scalar: P\ntemp.v:20: error: Unable to elaborate r-value: (P[(i)-('sd1)])&(C_generate[(i)-('sd1)])\ntemp.v:19: error: can not select part of scalar: G\ntemp.v:19: error: can not select part of scalar: P\ntemp.v:19: error: Unable to elaborate r-value: (G[(i)-('sd1)])|((P[(i)-('sd1)])&(C_propagate[(i)-('sd1)]))\ntemp.v:20: error: can not select part of scalar: P\ntemp.v:20: error: Unable to elaborate r-value: (P[(i)-('sd1)])&(C_generate[(i)-('sd1)])\ntemp.v:19: error: can not select part of scalar: G\ntemp.v:19: error: can not select part of scalar: P\ntemp.v:19: error: Unable to elaborate r-value: (G[(i)-('sd1)])|((P[(i)-('sd1)])&(C_propagate[(i)-('sd1)]))\ntemp.v:20: error: can not select part of scalar: P\ntemp.v:20: error: Unable to elaborate r-value: (P[(i)-('sd1)])&(C_generate[(i)-('sd1)])\ntemp.v:19: error: can not select part of scalar: G\ntemp.v:19: error: can not select part of scalar: P\ntemp.v:19: error: Unable to elaborate r-value: (G[(i)-('sd1)])|((P[(i)-('sd1)])&(C_propagate[(i)-('sd1)]))\ntemp.v:20: error: can not select part of scalar: P\ntemp.v:20: error: Unable to elaborate r-value: (P[(i)-('sd1)])&(C_generate[(i)-('sd1)])\ntemp.v:19: error: can not select part of scalar: G\ntemp.v:19: error: can not select part of scalar: P\ntemp.v:19: error: Unable to elaborate r-value: (G[(i)-('sd1)])|((P[(i)-('sd1)])&(C_propagate[(i)-('sd1)]))\ntemp.v:20: error: can not select part of scalar: P\ntemp.v:20: error: Unable to elaborate r-value: (P[(i)-('sd1)])&(C_generate[(i)-('sd1)])\ntemp.v:19: error: can not select part of scalar: G\ntemp.v:19: error: can not select part of scalar: P\ntemp.v:19: error: Unable to elaborate r-value: (G[(i)-('sd1)])|((P[(i)-('sd1)])&(C_propagate[(i)-('sd1)]))\ntemp.v:20: error: can not select part of scalar: P\ntemp.v:20: error: Unable to elaborate r-value: (P[(i)-('sd1)])&(C_generate[(i)-('sd1)])\ntemp.v:19: error: can not select part of scalar: G\ntemp.v:19: error: can not select part of scalar: P\ntemp.v:19: error: Unable to elaborate r-value: (G[(i)-('sd1)])|((P[(i)-('sd1)])&(C_propagate[(i)-('sd1)]))\ntemp.v:20: error: can not select part of scalar: P\ntemp.v:20: error: Unable to elaborate r-value: (P[(i)-('sd1)])&(C_generate[(i)-('sd1)])\ntemp.v:19: error: can not select part of scalar: G\ntemp.v:19: error: can not select part of scalar: P\ntemp.v:19: error: Unable to elaborate r-value: (G[(i)-('sd1)])|((P[(i)-('sd1)])&(C_propagate[(i)-('sd1)]))\ntemp.v:20: error: can not select part of scalar: P\ntemp.v:20: error: Unable to elaborate r-value: (P[(i)-('sd1)])&(C_generate[(i)-('sd1)])\ntemp.v:19: error: can not select part of scalar: G\ntemp.v:19: error: can not select part of scalar: P\ntemp.v:19: error: Unable to elaborate r-value: (G[(i)-('sd1)])|((P[(i)-('sd1)])&(C_propagate[(i)-('sd1)]))\ntemp.v:20: error: can not select part of scalar: P\ntemp.v:20: error: Unable to elaborate r-value: (P[(i)-('sd1)])&(C_generate[(i)-('sd1)])\ntemp.v:19: error: can not select part of scalar: G\ntemp.v:19: error: can not select part of scalar: P\ntemp.v:19: error: Unable to elaborate r-value: (G[(i)-('sd1)])|((P[(i)-('sd1)])&(C_propagate[(i)-('sd1)]))\ntemp.v:20: error: can not select part of scalar: P\ntemp.v:20: error: Unable to elaborate r-value: (P[(i)-('sd1)])&(C_generate[(i)-('sd1)])\n150 error(s) during elaboration."
+            }
+        ]
+    },
+    {
+        "module_name": "adder_8bit",
+        "solutions": [
+            {
+                "solution": "module adder_8bit(\n    input [7:0] a, b, \n    input cin, \n    output [7:0] sum, \n    output cout);\n\n    wire [7:0] c;\n    wire [6:0] c_intermediate;\n    \n    assign c_intermediate[0] = a[0] & b[0];\n    assign sum[0] = a[0] ^ b[0] ^ cin;\n    \n    genvar i;\n    generate\n        for (i = 1; i < 8; i = i + 1) begin : gen_adder\n            full_adder fa(\n                .a(a[i]),\n                .b(b[i]),\n                .cin(c_intermediate[i-1]),\n                .sum(sum[i]),\n                .cout(c[i])\n            );\n            assign c_intermediate[i] = a[i] & b[i] | a[i] & c_intermediate[i-1] | b[i] & c_intermediate[i-1];\n        end\n    endgenerate\n    \n    assign cout = c[7];\n\nendmodule\n\nmodule full_adder(\n    input a, b, cin,\n    output sum, cout\n);\n\n    assign {cout, sum} = a + b + cin;\n\nendmodule",
+                "pass": "编译失败: temp.v:23: error: Index c_intermediate[7] is out of range.\n1 error(s) during elaboration."
+            }
+        ]
+    },
+    {
+        "module_name": "adder_bcd",
+        "solutions": [
+            {
+                "solution": "module adder_bcd (\n    input  [3:0] A,   // First BCD number (0-9)\n    input  [3:0] B,   // Second BCD number (0-9)\n    input  Cin,       // Input carry\n    output [3:0] Sum, // BCD sum (0-9)\n    output Cout       // Output carry\n);\n\n    assign {Cout, Sum} = A + B + Cin;\n    always @* begin\n        if (Sum > 9) begin\n            Sum = Sum + 6;\n            Cout = 1;\n        end else begin\n            Cout = 0;\n        end\n    end\n\nendmodule",
+                "pass": "编译失败: temp.v:12: error: Sum is not a valid l-value in testbench.uut.\ntemp.v:5:      : Sum is declared here as wire.\ntemp.v:13: error: Cout is not a valid l-value in testbench.uut.\ntemp.v:6:      : Cout is declared here as wire.\ntemp.v:15: error: Cout is not a valid l-value in testbench.uut.\ntemp.v:6:      : Cout is declared here as wire.\n3 error(s) during elaboration."
+            }
+        ]
+    },
+    {
+        "module_name": "adder_pipe_64bit",
+        "solutions": [
+            {
+                "solution": "module adder_pipe_64bit\n#(\n    parameter DATA_WIDTH = 64,\n    parameter STG_WIDTH = 16\n)\n(\n    input clk,\n    input rst_n,\n    input i_en,\n    input [DATA_WIDTH-1:0] adda,\n    input [DATA_WIDTH-1:0] addb,\n    output [DATA_WIDTH:0] result,\n    output reg o_en\n);\n\nreg [DATA_WIDTH-1:0] sum [STG_WIDTH:0];\nreg [DATA_WIDTH:0] carry [STG_WIDTH:0];\n\nalways @(posedge clk or negedge rst_n) begin\n    if (~rst_n) begin\n        for (int i = 0; i <= STG_WIDTH; i = i + 1) begin\n            sum[i] <= 0;\n            carry[i] <= 0;\n        end\n        o_en <= 0;\n    end else begin\n        if (i_en) begin\n            sum[0] <= adda + addb;\n            carry[0] <= sum[0][DATA_WIDTH];\n            for (int i = 1; i <= STG_WIDTH; i = i + 1) begin\n                sum[i] <= sum[i-1] + carry[i-1];\n                carry[i] <= sum[i][DATA_WIDTH];\n            end\n            result <= {carry[STG_WIDTH], sum[STG_WIDTH]};\n            o_en <= 1;\n        end else begin\n            o_en <= 0;\n        end\n    end\nend\n\nendmodule",
+                "pass": "编译失败: temp.v:29: warning: Constant bit select [64] is after array word sum[][63:0].\ntemp.v:29:        : Replacing select with a constant 1'bx.\ntemp.v:32: warning: Constant bit select [64] is after array word sum[][63:0].\ntemp.v:32:        : Replacing select with a constant 1'bx.\ntemp.v:34: error: result is not a valid l-value in testbench.u_pip_add64.\ntemp.v:12:      : result is declared here as wire.\n1 error(s) during elaboration."
+            }
+        ]
+    },
+    {
+        "module_name": "alu",
+        "solutions": [
+            {
+                "solution": "module alu(\n    input [31:0] a,\n    input [31:0] b,\n    input [5:0] aluc,\n    output [31:0] r,\n    output zero,\n    output carry,\n    output negative,\n    output overflow,\n    output flag\n    );\n\n    reg [31:0] res;\n    reg zero, carry, negative, overflow, flag;\n\n    always @(*) begin\n        case(aluc)\n            6'b100000: res = a + b; // ADD\n            6'b100001: res = a + b; // ADDU\n            6'b100010: res = a - b; // SUB\n            6'b100011: res = a - b; // SUBU\n            6'b100100: res = a & b; // AND\n            6'b100101: res = a | b; // OR\n            6'b100110: res = a ^ b; // XOR\n            6'b100111: res = ~(a | b); // NOR\n            6'b101010: res = (a < b) ? 32'b1 : 32'b0; // SLT\n            6'b101011: res = (a < b) ? 32'b1 : 32'b0; // SLTU\n            6'b000000: res = a << b[4:0]; // SLL\n            6'b000010: res = a >> b[4:0]; // SRL\n            6'b000011: res = $signed(a) >>> b[4:0]; // SRA\n            6'b000100: res = a << b; // SLLV\n            6'b000110: res = a >> b; // SRLV\n            6'b000111: res = $signed(a) >>> b; // SRAV\n            6'b001111: res = {a[31:16], 16'b0}; // LUI\n            default: res = 32'bz;\n        endcase\n\n        zero = (res == 32'b0) ? 1 : 0;\n        carry = (res < a) ? 1 : 0;\n        negative = (res[31] == 1) ? 1 : 0;\n        overflow = (a[31] == b[31] && res[31] != a[31]) ? 1 : 0;\n        flag = (aluc == 6'b101010 || aluc == 6'b101011) ? 1 : 1'bz;\n    end\n\n    assign r = res;\n\nendmodule",
+                "pass": "编译失败: testbench.v:43: error: Unable to bind wire/reg/memory `test_file' in `testbench'\n1 error(s) during elaboration."
+            }
+        ]
+    },
+    {
+        "module_name": "asyn_fifo",
+        "solutions": [
+            {
+                "solution": "module asyn_fifo#(\n\tparameter\tWIDTH = 8,\n\tparameter \tDEPTH = 16\n)(\n\tinput \t\t\t\t\twclk\t, \n\tinput \t\t\t\t\trclk\t,   \n\tinput \t\t\t\t\twrstn\t,\n\tinput\t\t\t\t\trrstn\t,\n\tinput \t\t\t\t\twinc\t,\n\tinput \t\t\t \t\trinc\t,\n\tinput \t\t[WIDTH-1:0]\twdata\t,\n\n\toutput wire\t\t\t\twfull\t,\n\toutput wire\t\t\t\trempty\t,\n\toutput wire [WIDTH-1:0]\trdata\n);\n\nparameter ADDR_WIDTH = $clog2(DEPTH);\n\nreg [WIDTH-1:0] RAM_MEM [0:DEPTH-1];\nreg [ADDR_WIDTH-1:0] waddr_bin, raddr_bin, wptr, rptr, wptr_buff, rptr_buff;\nreg [ADDR_WIDTH-1:0] rptr_syn;\nwire [ADDR_WIDTH-1:0] wptr_gray, rptr_gray;\n\nalways @(posedge wclk or negedge wrstn) begin\n\tif (~wrstn) begin\n\t\twaddr_bin <= 0;\n\t\twptr <= 0;\n\t\twptr_buff <= 0;\n\tend else begin\n\t\twaddr_bin <= waddr_bin + winc;\n\t\twptr <= wptr_gray;\n\t\twptr_buff <= wptr;\n\tend\nend\n\nalways @(posedge rclk or negedge rrstn) begin\n\tif (~rrstn) begin\n\t\traddr_bin <= 0;\n\t\trptr <= 0;\n\t\trptr_buff <= 0;\n\tend else begin\n\t\traddr_bin <= raddr_bin + rinc;\n\t\trptr <= rptr_gray;\n\t\trptr_buff <= rptr;\n\tend\nend\n\nassign wptr_gray = wptr ^ (wptr >> 1);\nassign rptr_gray = rptr ^ (rptr >> 1);\n\nalways @(*) begin\n\trptr_syn = rptr_buff;\n\tif (rptr_syn[ADDR_WIDTH-1] == 1'b1)\n\t\trptr_syn = {~rptr_syn[ADDR_WIDTH-1], rptr_syn[ADDR_WIDTH-2:0]};\nend\n\nassign wfull = (wptr == {~rptr_syn[ADDR_WIDTH-1], rptr_syn[ADDR_WIDTH-2:0]});\nassign rempty = (rptr == wptr);\n\ndual_port_RAM dual_port_RAM_inst (\n\t.wclk(wclk),\n\t.wenc(winc),\n\t.waddr(waddr_bin),\n\t.wdata(wdata),\n\t.rclk(rclk),\n\t.renc(rinc),\n\t.raddr(raddr_bin),\n\t.rdata(rdata)\n);\n\nendmodule",
+                "pass": "编译失败: testbench.v:102: sorry: break statements not supported."
+            }
+        ]
+    },
+    {
+        "module_name": "barrel_shifter",
+        "solutions": [
+            {
+                "solution": "module mux2X1 (in0, in1, sel, out);\n  input in0, in1, sel;\n  output reg out;\n  always @*\n    out = sel ? in1 : in0;\nendmodule\n\nmodule barrel_shifter (in, ctrl, out);\n  input  [7:0] in;\n  input [2:0] ctrl;\n  output [7:0] out;\n  wire [7:0] x,y;\n\n  mux2X1 mux1 (in[3:0], in[7:4], ctrl[2], x);\n  mux2X1 mux2 (x[5:0], {2'b00, x[7:6]}, ctrl[1], y);\n  mux2X1 mux3 (y[6:0], {1'b0, y[7]}, ctrl[0], out);\nendmodule",
+                "pass": "测试失败: 未通过测试用例"
+            }
+        ]
+    },
+    {
+        "module_name": "calendar",
+        "solutions": [
+            {
+                "solution": "module calendar(CLK,RST,Hours,Mins,Secs);\ninput CLK,RST;\noutput [5:0] Hours,Mins,Secs;\nreg [5:0] Hours,Mins,Secs;\n\nalways @(posedge CLK or posedge RST) begin\n    if (RST) begin\n        Secs <= 6'b0;\n    end else begin\n        if (Secs == 6'b111111) begin\n            Secs <= 6'b0;\n        end else begin\n            Secs <= Secs + 1;\n        end\n    end\nend\n\nalways @(posedge CLK or posedge RST) begin\n    if (RST) begin\n        Mins <= 6'b0;\n    end else begin\n        if ((Mins == 6'b111111) && (Secs == 6'b111111)) begin\n            Mins <= 6'b0;\n        end else begin\n            if (Secs == 6'b111111) begin\n                Mins <= Mins + 1;\n            end\n        end\n    end\nend\n\nalways @(posedge CLK or posedge RST) begin\n    if (RST) begin\n        Hours <= 6'b0;\n    end else begin\n        if ((Hours == 6'b10111) && (Mins == 6'b111111) && (Secs == 6'b111111)) begin\n            Hours <= 6'b0;\n        end else begin\n            if ((Mins == 6'b111111) && (Secs == 6'b111111)) begin\n                Hours <= Hours + 1;\n            end\n        end\n    end\nend\n\nendmodule",
+                "pass": "编译失败: testbench.v:32: error: Unable to bind wire/reg/memory `test_file' in `testbench'\n1 error(s) during elaboration."
+            }
+        ]
+    },
+    {
+        "module_name": "clkgenerator",
+        "solutions": [
+            {
+                "solution": "module clkgenerator (\n    output reg clk\n);\n\n    parameter PERIOD = 10; // Clock period in time units\n\n    reg [PERIOD-1:0] counter;\n\n    initial begin\n        counter = 0;\n        clk = 0;\n    end\n\n    always @(posedge counter[PERIOD-1])\n        clk <= ~clk;\n\n    always @(posedge counter[PERIOD-1] or negedge clk)\n        counter <= counter + 1'b1;\n\nendmodule",
+                "pass": "测试失败: 未通过测试用例"
+            }
+        ]
+    },
+    {
+        "module_name": "comparator_3bit",
+        "solutions": [
+            {
+                "solution": "module comparator_3bit (\n    input [2:0] A,\n    input [2:0] B,\n    output A_greater,\n    output A_equal,\n    output A_less\n);\n\nassign A_greater = (A > B) ? 1 : 0;\nassign A_equal = (A == B) ? 1 : 0;\nassign A_less = (A < B) ? 1 : 0;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "comparator_4bit",
+        "solutions": [
+            {
+                "solution": "module comparator_4bit(\n    input [3:0] A,   // First 4-bit input operand\n    input [3:0] B,   // Second 4-bit input operand\n    output A_greater, \n    output A_equal,   \n    output A_less     \n);\n\n    assign A_greater = (A > B);\n    assign A_equal = (A == B);\n    assign A_less = (A < B);\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "counter_12",
+        "solutions": [
+            {
+                "solution": "module counter_12 \n(\n  input rst_n,\n  input clk,\n  input valid_count,\n\n  output reg [3:0] out\n);\n\nalways @(posedge clk or negedge rst_n) begin\n    if (!rst_n) begin\n        out <= 4'b0000;\n    end else begin\n        if (valid_count) begin\n            if (out == 4'd11) begin\n                out <= 4'b0000;\n            end else begin\n                out <= out + 1;\n            end\n        end\n    end\nend\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "div_16bit",
+        "solutions": [
+            {
+                "solution": "module div_16bit(\n    input wire [15:0] A,\n    input wire [7:0] B,\n    output wire [15:0] result,\n    output wire [15:0] odd\n    );\n\n    reg [15:0] a_reg;\n    reg [7:0] b_reg;\n    reg [15:0] result_reg;\n    reg [15:0] odd_reg;\n\n    always @(*) begin\n        a_reg = A;\n        b_reg = B;\n    end\n\n    always @(*) begin\n        result_reg = 16'b0;\n        odd_reg = 16'b0;\n        for (int i = 15; i >= 0; i = i - 1) begin\n            odd_reg = {odd_reg[14:0], a_reg[15]};\n            if (odd_reg >= b_reg) begin\n                result_reg[i] = 1;\n                odd_reg = odd_reg - b_reg;\n            end\n            a_reg = {a_reg[14:0], A[15]};\n        end\n        result = result_reg;\n        odd = odd_reg;\n    end\n\nendmodule",
+                "pass": "编译失败: temp.v:29: error: result is not a valid l-value in testbench.uut.\ntemp.v:4:      : result is declared here as wire.\ntemp.v:30: error: odd is not a valid l-value in testbench.uut.\ntemp.v:5:      : odd is declared here as wire.\n2 error(s) during elaboration."
+            }
+        ]
+    },
+    {
+        "module_name": "edge_detect",
+        "solutions": [
+            {
+                "solution": "module edge_detect(\n\tinput clk,\n\tinput rst_n,\n\tinput a,\n\t\n\toutput reg rise,\n\toutput reg down\n);\n\t\n\treg a_d1;\n\t\n\talways @(posedge clk or negedge rst_n) begin\n\t\tif (~rst_n) begin\n\t\t\trise <= 0;\n\t\t\tdown <= 0;\n\t\t\ta_d1 <= 0;\n\t\tend else begin\n\t\t\tif (a & ~a_d1) begin\n\t\t\t\trise <= 1;\n\t\t\t\tdown <= 0;\n\t\t\tend else if (~a & a_d1) begin\n\t\t\t\trise <= 0;\n\t\t\t\tdown <= 1;\n\t\t\tend else begin\n\t\t\t\trise <= 0;\n\t\t\t\tdown <= 0;\n\t\t\tend\n\t\t\ta_d1 <= a;\n\t\tend\n\tend\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "fixed_point_adder",
+        "solutions": [
+            {
+                "solution": "module fixed_point_adder #(\n\t//Parameterized values\n\tparameter Q = 15,\n\tparameter N = 32\n\t)\n\t(\n    input [N-1:0] a,\n    input [N-1:0] b,\n    output [N-1:0] c\n    );\n\n    reg [N-1:0] res;\n\n    always @* begin\n        if (a[N-1] == b[N-1]) begin\n            res = a + b;\n        end else begin\n            if (a > b) begin\n                res = a - b;\n            end else begin\n                res = b - a;\n            end\n        end\n    end\n\n    assign c = res;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "fixed_point_subtractor",
+        "solutions": [
+            {
+                "solution": "module fixed_point_subtractor #(\n\tparameter Q = 15,\n\tparameter N = 32\n\t)\n\t(\n    input [N-1:0] a,\n    input [N-1:0] b,\n    output [N-1:0] c\n    );\n\n    reg [N-1:0] res;\n\n    always @(*) begin\n        if (a[N-1] == b[N-1]) begin\n            res = a - b;\n        end else begin\n            if (a[N-1] == 1'b0) begin\n                res = a + (~b + 1);\n            end else begin\n                res = a + (~b + 1);\n            end\n        end\n    end\n\n    assign c = res;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "float_multi",
+        "solutions": [
+            {
+                "solution": "module float_multi(\n    input clk, \n    input rst, \n    input [31:0] a, \n    input [31:0] b, \n    output reg [31:0] z\n);\n\nreg [2:0] counter;\nreg [23:0] a_mantissa, b_mantissa, z_mantissa;\nreg [9:0] a_exponent, b_exponent, z_exponent;\nreg a_sign, b_sign, z_sign;\nreg [49:0] product;\nreg guard_bit, round_bit, sticky;\n\nalways @(posedge clk) begin\n    if (rst) begin\n        counter <= 0;\n    end else begin\n        case(counter)\n            0: begin\n                a_mantissa <= a[22:0];\n                b_mantissa <= b[22:0];\n                a_exponent <= a[30:23];\n                b_exponent <= b[30:23];\n                a_sign <= a[31];\n                b_sign <= b[31];\n            end\n            // Add more cases for processing, multiplication, rounding, and output generation\n        endcase\n    end\nend\n\nendmodule",
+                "pass": "测试失败: 未通过测试用例"
+            }
+        ]
+    },
+    {
+        "module_name": "freq_div",
+        "solutions": [
+            {
+                "solution": "module freq_div (CLK_in,CLK_50,CLK_10,CLK_1,RST);\ninput CLK_in,RST;\noutput reg CLK_50,CLK_10,CLK_1;\n\nreg [3:0] cnt_10;\nreg [6:0] cnt_100;\n\nalways @(posedge CLK_in or posedge RST) begin\n    if (RST) begin\n        CLK_50 <= 1'b0;\n        CLK_10 <= 1'b0;\n        cnt_10 <= 4'b0;\n        CLK_1 <= 1'b0;\n        cnt_100 <= 7'b0;\n    end else begin\n        // CLK_50 generation\n        CLK_50 <= ~CLK_50;\n        \n        // CLK_10 generation\n        if (cnt_10 == 4'b1000) begin\n            CLK_10 <= ~CLK_10;\n            cnt_10 <= 4'b0;\n        end else begin\n            cnt_10 <= cnt_10 + 1;\n        end\n        \n        // CLK_1 generation\n        if (cnt_100 == 7'b1100010) begin\n            CLK_1 <= ~CLK_1;\n            cnt_100 <= 7'b0;\n        end else begin\n            cnt_100 <= cnt_100 + 1;\n        end\n    end\nend\n\nendmodule",
+                "pass": "测试失败: 未通过测试用例"
+            }
+        ]
+    },
+    {
+        "module_name": "freq_divbyeven",
+        "solutions": [
+            {
+                "solution": "module freq_divbyeven(\n    input clk,\n    input rst_n,\n    output reg clk_div\n);\n    parameter NUM_DIV = 6;\n    reg [3:0] cnt;\n\n    always @(posedge clk or negedge rst_n) begin\n        if (~rst_n) begin\n            cnt <= 4'b0;\n            clk_div <= 1'b0;\n        end else begin\n            if (cnt < (NUM_DIV/2 - 1)) begin\n                cnt <= cnt + 1;\n            end else begin\n                cnt <= 4'b0;\n                clk_div <= ~clk_div;\n            end\n        end\n    end\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "freq_divbyfrac",
+        "solutions": [
+            {
+                "solution": "module freq_divbyfrac(\n    input               rst_n ,\n    input               clk,\n    output              clk_div\n    );\n\n   parameter            MUL2_DIV_CLK = 7 ;\n   \n   reg [2:0]            counter = 3'b000;\n   reg                  clk_div_int1;\n   reg                  clk_div_int2;\n   \n   always @(posedge clk or negedge rst_n) begin\n       if (~rst_n) begin\n           counter <= 3'b000;\n           clk_div_int1 <= 1'b0;\n           clk_div_int2 <= 1'b0;\n       end\n       else begin\n           if (counter == MUL2_DIV_CLK) begin\n               counter <= 3'b000;\n               clk_div_int1 <= ~clk_div_int1;\n               clk_div_int2 <= ~clk_div_int2;\n           end\n           else begin\n               counter <= counter + 1;\n           end\n       end\n   end\n   \n   assign clk_div = clk_div_int1 | clk_div_int2;\n\nendmodule",
+                "pass": "测试失败: 未通过测试用例"
+            }
+        ]
+    },
+    {
+        "module_name": "freq_divbyodd",
+        "solutions": [
+            {
+                "solution": "module freq_divbyodd(\n    input clk,\n    input rst_n,\n    output reg clk_div\n);\n\nparameter NUM_DIV = 5;\n\nreg [2:0] cnt1, cnt2;\nreg clk_div1, clk_div2;\n\nalways @(posedge clk or negedge rst_n) begin\n    if (~rst_n) begin\n        cnt1 <= 0;\n        cnt2 <= 0;\n        clk_div1 <= 0;\n        clk_div2 <= 0;\n        clk_div <= 0;\n    end else begin\n        if (cnt1 == (NUM_DIV - 1)) begin\n            cnt1 <= 0;\n            clk_div1 <= ~clk_div1;\n        end else begin\n            cnt1 <= cnt1 + 1;\n        end\n        \n        if (cnt2 == (NUM_DIV - 1)) begin\n            cnt2 <= 0;\n            clk_div2 <= ~clk_div2;\n        end else begin\n            cnt2 <= cnt2 + 1;\n        end\n        \n        if ((cnt1 == ((NUM_DIV - 1) / 2)) || (cnt2 == ((NUM_DIV - 1) / 2))) begin\n            clk_div <= clk_div1 | clk_div2;\n        end\n    end\nend\n\nendmodule",
+                "pass": "测试失败: 未通过测试用例"
+            }
+        ]
+    },
+    {
+        "module_name": "fsm",
+        "solutions": [
+            {
+                "solution": "module fsm(IN,MATCH,CLK,RST);\ninput IN,CLK,RST;\noutput reg MATCH;\n\nreg [4:0] state;\nreg [4:0] next_state;\n\nalways @(posedge CLK or posedge RST) begin\n    if(RST) begin\n        state <= 0;\n        MATCH <= 0;\n    end\n    else begin\n        state <= next_state;\n        if(state == 4 && IN) begin\n            MATCH <= 1;\n        end\n        else begin\n            MATCH <= 0;\n        end\n    end\nend\n\nalways @* begin\n    case(state)\n        0: begin\n            if(IN) next_state = 1;\n            else next_state = 0;\n        end\n        1: begin\n            if(IN) next_state = 2;\n            else next_state = 0;\n        end\n        2: begin\n            if(IN) next_state = 3;\n            else next_state = 0;\n        end\n        3: begin\n            if(IN) next_state = 4;\n            else next_state = 0;\n        end\n        4: begin\n            if(IN) next_state = 4;\n            else next_state = 0;\n        end\n        default: next_state = 0;\n    endcase\nend\n\nendmodule",
+                "pass": "测试失败: 未通过测试用例"
+            }
+        ]
+    },
+    {
+        "module_name": "instr_reg",
+        "solutions": [
+            {
+                "solution": "module instr_reg (\n    input clk,\n    input rst,\n    input [1:0] fetch,\n    input [7:0] data,\n    output reg [2:0] ins,\n    output reg [4:0] ad1,\n    output reg [7:0] ad2\n);\n\nreg [7:0] ins_p1;\nreg [7:0] ins_p2;\n\nalways @(posedge clk) begin\n    if (rst == 0) begin\n        ins_p1 <= 8'b0;\n        ins_p2 <= 8'b0;\n    end else begin\n        case(fetch)\n            2'b01: ins_p1 <= data;\n            2'b10: ins_p2 <= data;\n            default: begin end\n        endcase\n    end\nend\n\nassign ins = {ins_p1[7], ins_p1[6], ins_p1[5]};\nassign ad1 = ins_p1[4:0];\nassign ad2 = ins_p2;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "JC_counter",
+        "solutions": [
+            {
+                "solution": "module JC_counter(\n   input                clk ,\n   input                rst_n,\n \n   output reg [63:0]     Q  \n);\n\nalways @(posedge clk or negedge rst_n) begin\n    if (~rst_n) begin\n        Q <= 64'b0;\n    end else begin\n        if (Q[0] == 1'b0) begin\n            Q <= {Q[63:1], 1'b1};\n        end else begin\n            Q <= {Q[63:1], 1'b0};\n        end\n    end\nend\n\nendmodule",
+                "pass": "测试失败: 未通过测试用例"
+            }
+        ]
+    },
+    {
+        "module_name": "LFSR",
+        "solutions": [
+            {
+                "solution": "module LFSR (out, clk, rst);\n  input clk, rst;\n  output reg [3:0] out;\n\n  always @(posedge clk) begin\n    if (rst) begin\n      out <= 4'b0000;\n    end\n    else begin\n      out <= {out[2:0], out[3] ^ out[2]};\n    end\n  end\nendmodule",
+                "pass": "测试失败: 未通过测试用例"
+            }
+        ]
+    },
+    {
+        "module_name": "LIFObuffer",
+        "solutions": [
+            {
+                "solution": "module LIFObuffer (\n    input [3:0] dataIn,\n    input RW,\n    input EN,\n    input Rst,\n    input Clk,\n    output reg EMPTY,\n    output reg FULL,\n    output reg [3:0] dataOut\n);\n\nreg [3:0] stack_mem [0:3];\nreg [1:0] SP;\n\nalways @(posedge Clk) begin\n    if (Rst) begin\n        SP <= 4;\n        for (int i = 0; i < 4; i = i + 1) begin\n            stack_mem[i] <= 4'b0000;\n        end\n    end else if (EN) begin\n        if (RW && !EMPTY) begin\n            dataOut <= stack_mem[SP];\n            stack_mem[SP] <= 4'b0000;\n            SP <= SP + 1;\n        end else if (!RW && !FULL) begin\n            SP <= SP - 1;\n            stack_mem[SP] <= dataIn;\n        end\n    end\n    EMPTY <= (SP == 4);\n    FULL <= (SP == 0);\nend\n\nendmodule",
+                "pass": "测试失败: 未通过测试用例"
+            }
+        ]
+    },
+    {
+        "module_name": "multi_16bit",
+        "solutions": [
+            {
+                "solution": "module multi_16bit(\n    input clk,          // Chip clock signal.\n    input rst_n,        // Active-low reset signal. Defined as 0 for chip reset; defined as 1 for reset signal inactive.\n    input start,        // Chip enable signal. \n    input [15:0] ain,   // Input a (multiplicand) with a data width of 16 bits.\n    input [15:0] bin,   // Input b (multiplier) with a data width of 16 bits.\n\n    output [31:0] yout, // Product output with a data width of 32 bits.\n    output done         // Chip output flag signal. Defined as 1 indicates multiplication operation completion.\n);\n\nreg [15:0] areg, breg;\nreg [31:0] yout_r;\nreg [4:0] i;\nreg done_r;\n\nalways @(posedge clk or negedge rst_n) begin\n    if (~rst_n) begin\n        i <= 0;\n        areg <= 0;\n        breg <= 0;\n        yout_r <= 0;\n    end else begin\n        if (start && i < 17) begin\n            i <= i + 1;\n        end else if (!start) begin\n            i <= 0;\n        end\n    end\n\n    if (~rst_n) begin\n        done_r <= 0;\n    end else begin\n        if (i == 16) begin\n            done_r <= 1;\n        end else if (i == 17) begin\n            done_r <= 0;\n        end\n    end\n\n    if (~rst_n) begin\n        areg <= 0;\n        breg <= 0;\n        yout_r <= 0;\n    end else begin\n        if (start) begin\n            if (i == 0) begin\n                areg <= ain;\n                breg <= bin;\n            end else if (i > 0 && i < 17) begin\n                if (areg[i-1] == 1) begin\n                    yout_r <= yout_r + (breg << (i-1));\n                end\n            end\n        end\n    end\nend\n\nassign yout = yout_r;\nassign done = done_r;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "multi_8bit",
+        "solutions": [
+            {
+                "solution": "module multi_8bit (\n  input [7:0] A,\n  input [7:0] B,\n  output reg [15:0] product\n);\n\n  reg [7:0] multiplicand;\n  reg [15:0] temp_product;\n\n  always @(*) begin\n    temp_product = 16'b0;\n    multiplicand = A;\n    \n    for (int i = 0; i < 8; i = i + 1) begin\n      if (B[i] == 1) begin\n        temp_product = temp_product + (multiplicand << i);\n      end\n    end\n    \n    product = temp_product;\n  end\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "multi_booth_8bit",
+        "solutions": [
+            {
+                "solution": "module multi_booth_8bit (p, rdy, clk, reset, a, b);\n   input clk, reset;\n   input [7:0] a, b;\n   output [15:0] p;\n   output rdy;\n\n   reg [15:0] p;\n   reg rdy;\n   reg [15:0] multiplier, multiplicand;\n   reg [4:0] ctr;\n\n   always @(posedge clk or posedge reset) begin\n      if (reset) begin\n         multiplier <= {{8{a[7]}}, a};\n         multiplicand <= {{8{b[7]}}, b};\n         ctr <= 0;\n         p <= 0;\n         rdy <= 0;\n      end\n      else begin\n         if (ctr < 16) begin\n            multiplicand <= {multiplicand[14:0], 1'b0};\n            if (multiplier[ctr] == 1'b1) begin\n               p <= p + multiplicand;\n            end\n            ctr <= ctr + 1;\n            if (ctr == 16) begin\n               rdy <= 1;\n            end\n         end\n      end\n   end\nendmodule",
+                "pass": "编译失败: testbench.v:59: error: Unable to bind wire/reg/memory `test_file' in `testbench'\ntestbench.v:59: error: Unable to bind wire/reg/memory `TESTFILE' in `testbench'\n2 error(s) during elaboration."
+            }
+        ]
+    },
+    {
+        "module_name": "multi_pipe_4bit",
+        "solutions": [
+            {
+                "solution": "module multi_pipe_4bit#(\n\tparameter size = 4\n)(\n\tinput \t\t\t\t\t\tclk \t\t,   \n\tinput \t\t\t\t\t\trst_n\t\t,\n\tinput\t[size-1:0]\t\t\tmul_a\t\t,\n\tinput\t[size-1:0]\t\t\tmul_b\t\t,\n \n \toutput\treg\t[size*2-1:0]\tmul_out\t\t\n);\n\nparameter N = 2 * size;\n\nreg [N-1:0] partial_products [0:size-1];\nreg [N-1:0] sum_reg;\n\nalways @(posedge clk or negedge rst_n) begin\n\tif (~rst_n) begin\n\t\tfor (int i = 0; i < size; i = i + 1) begin\n\t\t\tpartial_products[i] <= 0;\n\t\tend\n\t\tsum_reg <= 0;\n\tend\n\telse begin\n\t\tfor (int i = 0; i < size; i = i + 1) begin\n\t\t\tif (mul_b[i] == 1) begin\n\t\t\t\tpartial_products[i] <= {mul_a, {i{1'b0}}};\n\t\t\tend\n\t\t\telse begin\n\t\t\t\tpartial_products[i] <= 0;\n\t\t\tend\n\t\tend\n\t\t\n\t\tsum_reg <= 0;\n\t\tfor (int i = 0; i < size; i = i + 1) begin\n\t\t\tsum_reg <= sum_reg + partial_products[i];\n\t\tend\n\tend\nend\n\nalways @(posedge clk or negedge rst_n) begin\n\tif (~rst_n) begin\n\t\tmul_out <= 0;\n\tend\n\telse begin\n\t\tmul_out <= sum_reg;\n\tend\nend\n\nendmodule",
+                "pass": "编译失败: temp.v:27: error: A reference to a wire or reg (`i') is not allowed in a constant expression.\n1 error(s) during elaboration."
+            }
+        ]
+    },
+    {
+        "module_name": "multi_pipe_8bit",
+        "solutions": [
+            {
+                "solution": "module multi_pipe_8bit#(\n    parameter size = 8\n)(\n    input clk,\n    input rst_n,\n    input mul_en_in,\n    input [size-1:0] mul_a,\n    input [size-1:0] mul_b,\n \n    output reg mul_en_out,\n    output reg [size*2-1:0] mul_out\n);\n\nreg [size-1:0] mul_a_reg;\nreg [size-1:0] mul_b_reg;\nreg [size*2-1:0] sum;\nwire [size*2-1:0] temp;\n\nalways @(posedge clk) begin\n    if (rst_n == 0) begin\n        mul_en_out <= 0;\n        mul_out <= 0;\n        mul_a_reg <= 0;\n        mul_b_reg <= 0;\n        sum <= 0;\n    end else begin\n        mul_a_reg <= mul_en_in ? mul_a : mul_a_reg;\n        mul_b_reg <= mul_en_in ? mul_b : mul_b_reg;\n        \n        for (int i = 0; i < size; i = i + 1) begin\n            temp[i*2 +: 2] <= mul_en_in ? (mul_b_reg[i] ? {size{mul_a_reg}} : 0) << i : temp[i*2 +: 2];\n        end\n        \n        for (int i = 0; i < size; i = i + 1) begin\n            sum[i*2 +: 2] <= temp[i*2 +: 2] + sum[i*2 +: 2];\n        end\n        \n        mul_out <= sum;\n        mul_en_out <= mul_en_in;\n    end\nend\n\nendmodule",
+                "pass": "编译失败: temp.v:31: error: temp[(i)*('sd2)+:'sd2] is not a valid l-value in testbench.u1.$ivl_for_loop0.\ntemp.v:17:      : temp[(i)*('sd2)+:'sd2] is declared here as wire.\n1 error(s) during elaboration."
+            }
+        ]
+    },
+    {
+        "module_name": "parallel2serial",
+        "solutions": [
+            {
+                "solution": "module parallel2serial(\n    input clk,\n    input rst_n,\n    input [3:0] d,\n    output valid_out,\n    output dout\n);\n\nreg [3:0] data;\nreg [1:0] cnt;\nreg valid;\n\nalways @(posedge clk or negedge rst_n) begin\n    if (~rst_n) begin\n        cnt <= 2'b00;\n        data <= 4'b0000;\n        valid <= 1'b0;\n    end\n    else begin\n        if (cnt == 2'b11) begin\n            data <= d;\n            cnt <= 2'b00;\n            valid <= 1'b1;\n        end\n        else begin\n            cnt <= cnt + 1;\n            valid <= 1'b0;\n            data <= {data[2:0], data[3]};\n        end\n    end\nend\n\nassign dout = data[3];\nassign valid_out = valid;\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "pe",
+        "solutions": [
+            {
+                "solution": "module pe(\n    input clk,\n    input rst,\n    input [31:0] a,\n    input [31:0] b,\n\n    output reg [31:0] c\n);\n\nalways @(posedge clk or posedge rst) begin\n    if (rst) begin\n        c <= 0;\n    end else begin\n        c <= c + a * b;\n    end\nend\n\nendmodule",
+                "pass": "编译失败: testbench.v:10: error: Wrong number of ports. Expecting 5, got 4.\n1 error(s) during elaboration."
+            }
+        ]
+    },
+    {
+        "module_name": "pulse_detect",
+        "solutions": [
+            {
+                "solution": "module pulse_detect(    \n    input clk,\n    input rst_n,\n    input data_in,\n    output reg data_out\n);\n\n    reg [1:0] state;\n\n    always @(posedge clk or negedge rst_n) begin\n        if (~rst_n) begin\n            state <= 2'b00;\n            data_out <= 1'b0;\n        end\n        else begin\n            case(state)\n                2'b00: begin\n                    if (data_in) state <= 2'b01;\n                end\n                2'b01: begin\n                    if (data_in) state <= 2'b10;\n                    else state <= 2'b00;\n                end\n                2'b10: begin\n                    if (~data_in) begin\n                        state <= 2'b00;\n                        data_out <= 1'b1;\n                    end\n                end\n            endcase\n        end\n    end\n\nendmodule",
+                "pass": "测试失败: 未通过测试用例"
+            }
+        ]
+    },
+    {
+        "module_name": "radix2_div",
+        "solutions": [
+            {
+                "solution": "module radix2_div \n#(\nparameter DATAWIDTH=8\n)\n(\n  input                       clk,\n  input                       rst,\n  input                       sign,\n  input  [DATAWIDTH-1:0]      dividend,\n  input  [DATAWIDTH-1:0]      divisor,\n  input                       opn_valid,\n  output reg                  res_valid,\n  output reg [DATAWIDTH*2-1:0] result\n);\n\nreg [DATAWIDTH:0] SR;\nreg [DATAWIDTH-1:0] NEG_DIVISOR;\nreg [3:0] cnt;\nreg start_cnt;\n\nalways @(posedge clk) begin\n    if (rst) begin\n        res_valid <= 0;\n        cnt <= 0;\n        start_cnt <= 0;\n    end else if (opn_valid && !res_valid) begin\n        SR <= {1'b0, (sign ? dividend[DATAWIDTH-1] : 1'b0), dividend};\n        NEG_DIVISOR <= -divisor;\n        cnt <= 1;\n        start_cnt <= 1;\n    end else if (start_cnt) begin\n        if (cnt == 8) begin\n            cnt <= 0;\n            start_cnt <= 0;\n            result <= {SR[DATAWIDTH-1], SR[DATAWIDTH*2-1:DATAWIDTH]};\n            res_valid <= 1;\n        end else begin\n            cnt <= cnt + 1;\n            if (SR[DATAWIDTH] == 1) begin\n                SR <= {SR[DATAWIDTH-1], SR[DATAWIDTH*2-1:DATAWIDTH], 1'b0};\n            end else begin\n                SR <= SR + NEG_DIVISOR;\n            end\n        end\n    end\nend\n\nendmodule",
+                "pass": "编译失败: testbench.v:14: error: port ``res_ready'' is not a port of uut.\ntemp.v:35: warning: Part select [15:8] is selecting after the vector SR[8:0].\ntemp.v:35:        : Replacing the out of bound bits with 'bx.\ntemp.v:40: warning: Part select [15:8] is selecting after the vector SR[8:0].\ntemp.v:40:        : Replacing the out of bound bits with 'bx.\n1 error(s) during elaboration."
+            }
+        ]
+    },
+    {
+        "module_name": "RAM",
+        "solutions": [
+            {
+                "solution": "module RAM (\n\tinput clk,\n\tinput rst_n,\n\t\n\tinput write_en,\n\tinput [7:0]write_addr,\n\tinput [5:0]write_data,\n\t\n\tinput read_en,\n\tinput [7:0]read_addr,\n\toutput reg [5:0]read_data\n);\n\nparameter WIDTH = 6;\nparameter DEPTH = 8;\n\nreg [5:0] RAM [0:2**WIDTH-1];\n\nalways @(posedge clk or negedge rst_n) begin\n\tif (!rst_n) begin\n\t\tfor (int i = 0; i < 2**WIDTH; i = i + 1) begin\n\t\t\tRAM[i] <= 6'b000000;\n\t\tend\n\tend else begin\n\t\tif (write_en) begin\n\t\t\tRAM[write_addr] <= write_data;\n\t\tend\n\tend\nend\n\nalways @(posedge clk or negedge rst_n) begin\n\tif (!rst_n) begin\n\t\tread_data <= 6'b000000;\n\tend else begin\n\t\tif (read_en) begin\n\t\t\tread_data <= RAM[read_addr];\n\t\tend else begin\n\t\t\tread_data <= 6'b000000;\n\t\tend\n\tend\nend\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "right_shifter",
+        "solutions": [
+            {
+                "solution": "module right_shifter(clk, q, d);\n\n    input clk;\n    input d;\n    output reg [7:0] q;\n\n    always @(posedge clk)\n    begin\n        q <= {d, q[7:1]};\n    end\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "ring_counter",
+        "solutions": [
+            {
+                "solution": "module ring_counter (\n    input wire clk,\n    input wire reset,\n    output reg [7:0] out\n);\n\nalways @(posedge clk) begin\n    if (reset) begin\n        out <= 8'b0000_0001;\n    end else begin\n        out <= {out[6:0], out[7]};\n    end\nend\n\nendmodule",
+                "pass": "编译失败: testbench.v:22: error: Cannot assign to array data. Did you forget a word index?\nElaboration failed"
+            }
+        ]
+    },
+    {
+        "module_name": "ROM",
+        "solutions": [
+            {
+                "solution": "module ROM (\n    input wire [7:0] addr,        // 8-bit Address input\n    output reg [15:0] dout        // 16-bit Data output\n);\n\n    reg [15:0] mem [0:255];\n\n    initial begin\n        mem[0] = 16'hA0A0;\n        mem[1] = 16'hB1B1;\n        mem[2] = 16'hC2C2;\n        mem[3] = 16'hD3D3;\n        // Initialize other memory locations as needed\n    end\n\n    always @(*) begin\n        dout = mem[addr];\n    end\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "sequence_detector",
+        "solutions": [
+            {
+                "solution": "module sequence_detector(\n    input clk,\n    input reset_n,\n    input data_in,\n    output reg sequence_detected\n    );\n\n    parameter IDLE = 2'b00;\n    parameter S1 = 2'b01;\n    parameter S2 = 2'b10;\n    parameter S3 = 2'b11;\n\n    reg [1:0] state;\n\n    always @(posedge clk or negedge reset_n) begin\n        if (~reset_n) begin\n            state <= IDLE;\n            sequence_detected <= 1'b0;\n        end\n        else begin\n            case (state)\n                IDLE: begin\n                    if (data_in == 1'b1)\n                        state <= S1;\n                    else\n                        state <= IDLE;\n                end\n                S1: begin\n                    if (data_in == 1'b0)\n                        state <= IDLE;\n                    else\n                        state <= S2;\n                end\n                S2: begin\n                    if (data_in == 1'b0)\n                        state <= IDLE;\n                    else\n                        state <= S3;\n                end\n                S3: begin\n                    if (data_in == 1'b1) begin\n                        state <= S4;\n                        sequence_detected <= 1'b1;\n                    end\n                    else\n                        state <= IDLE;\n                end\n                S4: begin\n                    state <= IDLE;\n                    sequence_detected <= 1'b0;\n                end\n                default: state <= IDLE;\n            endcase\n        end\n    end\n\nendmodule",
+                "pass": "编译失败: testbench.v:8: error: port ``rst_n'' is not a port of dut.\ntemp.v:42: error: Unable to bind wire/reg/memory `S4' in `testbench.dut'\ntemp.v:48: error: Unable to bind wire/reg/memory `S4' in `testbench.dut'\ntestbench.v:8: warning: Instantiating module sequence_detector with dangling input port 2 (reset_n) floating.\n3 error(s) during elaboration."
+            }
+        ]
+    },
+    {
+        "module_name": "serial2parallel",
+        "solutions": [
+            {
+                "solution": "module serial2parallel(\n\tinput clk,\n\tinput rst_n,\n\tinput din_serial,\n\tinput din_valid,\n\toutput reg [7:0] dout_parallel,\n\toutput reg dout_valid\n);\n\nreg [3:0] cnt;\n\nalways @(posedge clk or negedge rst_n) begin\n\tif (~rst_n) begin\n\t\tcnt <= 4'b0;\n\t\tdout_valid <= 0;\n\tend\n\telse begin\n\t\tif (din_valid) begin\n\t\t\tif (cnt < 4'b1000) begin\n\t\t\t\tcnt <= cnt + 1;\n\t\t\t\tdout_parallel <= {din_serial, dout_parallel[7:1]};\n\t\t\tend\n\t\t\tif (cnt == 4'b1000) begin\n\t\t\t\tdout_valid <= 1;\n\t\t\tend\n\t\tend\n\tend\nend\n\nendmodule",
+                "pass": "测试失败: 未通过测试用例"
+            }
+        ]
+    },
+    {
+        "module_name": "signal_generator",
+        "solutions": [
+            {
+                "solution": "module signal_generator(\n  input clk,\n  input rst_n,\n  output reg [4:0] wave\n);\n\nreg [1:0] state;\n\nalways @(posedge clk or negedge rst_n) begin\n    if (~rst_n) begin\n        state <= 2'b00;\n        wave <= 5'b00000;\n    end\n    else begin\n        case(state)\n            2'b00: begin\n                if (wave == 5'b11111)\n                    state <= 2'b01;\n                else\n                    wave <= wave + 1;\n            end\n            2'b01: begin\n                if (wave == 5'b00000)\n                    state <= 2'b00;\n                else\n                    wave <= wave - 1;\n            end\n        endcase\n    end\nend\n\nendmodule",
+                "pass": "编译失败: testbench.v:19: error: Unable to bind wire/reg/memory `test_file' in `testbench'\n1 error(s) during elaboration."
+            }
+        ]
+    },
+    {
+        "module_name": "square_wave",
+        "solutions": [
+            {
+                "solution": "module square_wave(\n    input clk,                     \n    input [7:0] freq,           \n    output reg wave_out          \n);\n\nreg [7:0] count;\n\nalways @(posedge clk) begin\n    if (count == freq - 1) begin\n        count <= 0;\n        wave_out <= ~wave_out;\n    end\n    else begin\n        count <= count + 1;\n    end\nend\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "sub_64bit",
+        "solutions": [
+            {
+                "solution": "module sub_64bit(\n  input [63:0] A,\n  input [63:0] B,\n  output reg [63:0] result,\n  output reg overflow\n);\n\n  always @* begin\n    result = A - B;\n    if ((A[63] == 0 && B[63] == 1 && result[63] == 1) || (A[63] == 1 && B[63] == 0 && result[63] == 0))\n      overflow = 1;\n    else\n      overflow = 0;\n  end\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "synchronizer",
+        "solutions": [
+            {
+                "solution": "module synchronizer(\n\tinput \t\t\t\tclk_a\t, \n\tinput \t\t\t\tclk_b\t,   \n\tinput \t\t\t\tarstn\t,\n\tinput\t\t\t\tbrstn   ,\n\tinput\t\t[3:0]\tdata_in\t,\n\tinput               data_en ,\n\n\toutput reg  [3:0] \tdataout\n);\n\n\treg [3:0] data_reg;\n\treg [3:0] en_data_reg;\n\treg en_clap_one, en_clap_two;\n\n\talways @(posedge clk_a or negedge arstn) begin\n\t\tif (~arstn) begin\n\t\t\tdata_reg <= 4'b0000;\n\t\tend else begin\n\t\t\tdata_reg <= data_in;\n\t\tend\n\n\t\tif (~arstn) begin\n\t\t\ten_data_reg <= 1'b0;\n\t\tend else begin\n\t\t\ten_data_reg <= data_en;\n\t\tend\n\tend\n\n\talways @(posedge clk_b or negedge brstn) begin\n\t\tif (~brstn) begin\n\t\t\ten_clap_one <= 1'b0;\n\t\t\ten_clap_two <= 1'b0;\n\t\tend else begin\n\t\t\ten_clap_one <= en_data_reg;\n\t\t\ten_clap_two <= en_clap_one;\n\t\tend\n\n\t\tif (~brstn) begin\n\t\t\tdataout <= 4'b0000;\n\t\tend else begin\n\t\t\tif (en_clap_two) begin\n\t\t\t\tdataout <= data_reg;\n\t\t\tend\n\t\tend\n\tend\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "traffic_light",
+        "solutions": [
+            {
+                "solution": "module traffic_light\n    (\n\t\tinput rst_n, \n        input clk, \n        input pass_request,\n\t\toutput reg[7:0] clock,\n        output reg red,\n\t\toutput reg yellow,\n\t\toutput reg green\n    );\n\t\n\tparameter \tidle = 2'd0,\n\t\t\t\ts1_red = 2'd1,\n\t\t\t\ts2_yellow = 2'd2,\n\t\t\t\ts3_green = 2'd3;\n\t\n\treg [1:0] state;\n\treg [1:0] next_state;\n\treg [7:0] cnt;\n\treg p_red, p_yellow, p_green;\n\t\n\talways @(posedge clk or negedge rst_n) begin\n\t\tif (!rst_n) begin\n\t\t\tstate <= idle;\n\t\t\tcnt <= 10;\n\t\tend\n\t\telse begin\n\t\t\tstate <= next_state;\n\t\t\tcnt <= cnt - 1;\n\t\tend\n\t\t\n\t\tcase(state)\n\t\t\tidle: begin\n\t\t\t\tnext_state = s1_red;\n\t\t\tend\n\t\t\ts1_red: begin\n\t\t\t\tnext_state = (cnt == 3) ? s3_green : s1_red;\n\t\t\tend\n\t\t\ts2_yellow: begin\n\t\t\t\tnext_state = (cnt == 3) ? s1_red : s2_yellow;\n\t\t\tend\n\t\t\ts3_green: begin\n\t\t\t\tnext_state = (cnt == 3) ? s2_yellow : s3_green;\n\t\t\tend\n\t\tendcase\n\tend\n\t\n\tassign clock = cnt;\n\t\n\talways @(posedge clk or negedge rst_n) begin\n\t\tif (!rst_n) begin\n\t\t\tp_red <= 0;\n\t\t\tp_yellow <= 0;\n\t\t\tp_green <= 0;\n\t\tend\n\t\telse begin\n\t\t\tp_red <= red;\n\t\t\tp_yellow <= yellow;\n\t\t\tp_green <= green;\n\t\tend\n\tend\n\t\n\talways @(posedge clk or negedge rst_n) begin\n\t\tcase(state)\n\t\t\tidle: begin\n\t\t\t\tred <= 0;\n\t\t\t\tyellow <= 0;\n\t\t\t\tgreen <= 0;\n\t\t\tend\n\t\t\ts1_red: begin\n\t\t\t\tred <= 1;\n\t\t\t\tyellow <= 0;\n\t\t\t\tgreen <= 0;\n\t\t\tend\n\t\t\ts2_yellow: begin\n\t\t\t\tred <= 0;\n\t\t\t\tyellow <= 1;\n\t\t\t\tgreen <= 0;\n\t\t\tend\n\t\t\ts3_green: begin\n\t\t\t\tred <= 0;\n\t\t\t\tyellow <= 0;\n\t\t\t\tgreen <= 1;\n\t\t\tend\n\t\tendcase\n\tend\n\t\n\talways @(posedge clk) begin\n\t\tif (pass_request && green) begin\n\t\t\tcnt <= 10;\n\t\tend\n\t\tif (!green && p_green) begin\n\t\t\tcnt <= 60;\n\t\tend\n\t\tif (!yellow && p_yellow) begin\n\t\t\tcnt <= 5;\n\t\tend\n\t\tif (!red && p_red) begin\n\t\t\tcnt <= 10;\n\t\tend\n\tend\n\nendmodule",
+                "pass": "测试失败: 未通过测试用例"
+            }
+        ]
+    },
+    {
+        "module_name": "up_down_counter",
+        "solutions": [
+            {
+                "solution": "module up_down_counter (\n    input wire clk,\n    input wire reset,\n    input wire up_down,\n    output reg [15:0] count\n);\n\nalways @(posedge clk) begin\n    if (reset) begin\n        count <= 16'b0;\n    end else begin\n        if (up_down) begin\n            count <= count + 1;\n        end else begin\n            count <= count - 1;\n        end\n    end\nend\n\nendmodule",
+                "pass": "true"
+            }
+        ]
+    },
+    {
+        "module_name": "width_8to16",
+        "solutions": [
+            {
+                "solution": "module width_8to16(\n\tinput \t\t\t\tclk \t,   \n\tinput \t\t\t\trst_n\t,\n\tinput\t\t\t\tvalid_in,\n\tinput\t[7:0]\t\tdata_in\t,\n \n \toutput\treg\t\tvalid_out,\n\toutput  reg [15:0]\tdata_out\n);\n\n\treg [7:0] data_reg;\n\n\talways @(posedge clk or negedge rst_n) begin\n\t\tif (!rst_n) begin\n\t\t\tdata_out <= 16'b0;\n\t\t\tvalid_out <= 1'b0;\n\t\tend else begin\n\t\t\tif (valid_in) begin\n\t\t\t\tdata_reg <= data_in;\n\t\t\t\tif (valid_out) begin\n\t\t\t\t\tdata_out <= {data_reg, data_in};\n\t\t\t\t\tvalid_out <= 1'b1;\n\t\t\t\tend else begin\n\t\t\t\t\tdata_out <= {data_reg, data_in};\n\t\t\t\t\tvalid_out <= 1'b0;\n\t\t\t\tend\n\t\t\tend\n\t\tend\n\tend\n\nendmodule",
+                "pass": "测试失败: 未通过测试用例"
+            }
+        ]
+    }
+]

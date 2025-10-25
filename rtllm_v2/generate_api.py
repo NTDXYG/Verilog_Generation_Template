@@ -120,12 +120,12 @@ async def main(config):
         json.dump(all_results, f, ensure_ascii=False, indent=4)
 
 if __name__ == "__main__":
-
+    # 配置参数
     config = {
         "api_key": "sk-",
         "base_url": "https://api.openai-proxy.org/v1",
         "model_name": "gpt-3.5-turbo",
-        "prompt_file": "problems_resbench.jsonl",
+        "prompt_file": "problems_rtllm_v2.jsonl",
         "max_concurrent": 20,
         "k": 1,
     }

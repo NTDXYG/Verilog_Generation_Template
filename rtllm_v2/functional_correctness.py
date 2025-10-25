@@ -10,11 +10,11 @@ from tqdm import tqdm
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 # ================== 配置文件路径 ==================
-SOLUTIONS_FILE = "pass1_gpt-3.5-turbo.json"  # 生成的解决方案文件
-PROBLEMS_FILE = "problems_resbench.jsonl"                     # 问题数据集文件
-TEMP_VERILOG_FILE = "temp.v"                                 # 临时Verilog设计文件
-TEMP_TESTBENCH_FILE = "testbench.v"                          # 临时测试台文件
-VVP_OUTPUT_FILE = "test.vvp"                                 # 编译输出文件
+SOLUTIONS_FILE = "pass1_gpt-3.5-turbo.json"    # 生成的解决方案文件
+PROBLEMS_FILE = "problems_rtllm_v2.jsonl"       # 问题数据集文件
+TEMP_VERILOG_FILE = "temp.v"                    # 临时Verilog设计文件
+TEMP_TESTBENCH_FILE = "testbench.v"             # 临时测试台文件
+VVP_OUTPUT_FILE = "test.vvp"                    # 编译输出文件
 
 def extract_testbench_module_name(testbench_content):
     """
@@ -28,7 +28,6 @@ def extract_testbench_module_name(testbench_content):
         
     说明:
         通过正则表达式匹配 "module 模块名" 的模式来提取测试台的顶层模块名
-        支持两种格式: module <name>(...) 和 module <name>;
     """
     for line in testbench_content.splitlines():
         line = line.strip()
@@ -43,9 +42,9 @@ def calculate_pass_at_k(n, c, k):
     计算pass@k指标
     
     参数:
-        n (int): 总样本数量
-        c (int): 通过测试的样本数量  
-        k (int): pass@k中的k值
+        n: 总样本数量
+        c: 通过测试的样本数量  
+        k: pass@k中的k值
         
     返回:
         float: pass@k概率值
@@ -53,7 +52,6 @@ def calculate_pass_at_k(n, c, k):
     说明:
         pass@k表示在k次尝试中至少有一次成功的概率
         公式: pass@k = 1 - C(n-c, k) / C(n, k)
-        其中C(n,k)表示从n个元素中选择k个的组合数
     """
     if n == 0:
         return 0.0
@@ -71,12 +69,12 @@ def clean_up_simulation():
     清理仿真环境
     
     功能:
-        1. 终止所有挂起的仿真进程（iverilog和vvp）
+        1. 终止所有挂起的仿真进程
         2. 删除所有临时文件
     """
     print("正在终止所有挂起的仿真进程...")
     
-    # 终止iverilog和vvp进程（Linux/Unix系统）
+    # 终止iverilog和vvp进程
     subprocess.run("pkill iverilog", shell=True, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
     subprocess.run("pkill vvp", shell=True, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
     
@@ -98,9 +96,8 @@ def run_functional_correctness():
         4. 计算并输出pass@k指标
         
     注意:
-        - 使用动态测试台模块名提取
-        - 通过检查输出中的"All tests passed"或"Your Design Passed"判断测试结果
-        - 支持ResBench数据集格式
+        此版本使用动态提取的测试台模块名，并通过检查输出中的
+        "All tests passed" 或 "Your Design Passed" 来判断测试结果
     """
     print("开始加载数据文件...")
     
@@ -110,7 +107,6 @@ def run_functional_correctness():
         with open(SOLUTIONS_FILE, "r", encoding="utf-8") as file:
             solutions_data = json.load(file)
         print(f"成功加载解决方案文件: {SOLUTIONS_FILE}")
-        print(f"共加载 {len(solutions_data)} 个模块的解决方案")
     except FileNotFoundError:
         print(f"错误: 找不到解决方案文件 {SOLUTIONS_FILE}")
         return
@@ -132,15 +128,13 @@ def run_functional_correctness():
         print(f"错误: 找不到问题数据文件 {PROBLEMS_FILE}")
         return
             
-    # 构建模块名到测试台的映射字典
+    # 构建模块名到测试台的映射
     module_testbenches = {}
     for problem in problems_data:
         module_name = problem.get("module_name")
         testbench = problem.get("testbench")
         if module_name and testbench:
             module_testbenches[module_name] = testbench
-        else:
-            print(f"警告: 问题数据缺少必要字段 - module_name: {module_name}")
     
     print(f"成功构建测试台映射，共{len(module_testbenches)}个模块")
 
@@ -152,25 +146,16 @@ def run_functional_correctness():
     timeout = 5
     
     print("开始执行功能正确性测试...")
-    print("-" * 50)
     
     # ================== 主测试循环 ==================
     for module_entry in tqdm(solutions_data, desc="测试进度"):
         module_name = module_entry.get("module_name")
-        if not module_name:
-            print("警告: 解决方案条目缺少模块名，跳过")
-            continue
-            
-        if module_name not in module_testbenches:
+        if not module_name or module_name not in module_testbenches:
             print(f"警告: 模块 {module_name} 没有对应的测试台，跳过")
             continue
 
         testbench_code = module_testbenches[module_name]
         solutions = module_entry.get("solutions", [])
-        
-        if not solutions:
-            print(f"警告: 模块 {module_name} 没有解决方案，跳过")
-            continue
         
         # 遍历当前模块的所有解决方案
         for solution_idx, solution_entry in enumerate(solutions):
@@ -204,18 +189,19 @@ def run_functional_correctness():
             tb_module = extract_testbench_module_name(testbench_code)
             if not tb_module:
                 solution_entry["pass"] = "错误: 无法从测试台中提取模块名"
+                print(f"警告: 无法从模块 {module_name} 的测试台中提取模块名，跳过")
                 continue
 
             # ================== 编译阶段 ==================
             # 构建iverilog编译命令
             compile_cmd = [
-                "iverilog",                    # Icarus Verilog编译器
+                "iverilog",                    # 编译器
                 "-Wall",                       # 显示所有警告
                 "-Winfloop",                   # 检测无限循环
                 "-Wno-timescale",             # 忽略时间尺度警告
                 "-g2012",                     # 使用Verilog-2012标准
                 "-s", tb_module,              # 指定顶层模块（动态提取的）
-                "-o", VVP_OUTPUT_FILE,        # 指定输出可执行文件
+                "-o", VVP_OUTPUT_FILE,        # 输出文件
                 TEMP_VERILOG_FILE,            # 设计文件
                 TEMP_TESTBENCH_FILE           # 测试台文件
             ]
@@ -230,8 +216,8 @@ def run_functional_correctness():
                 continue
 
             # ================== 仿真阶段 ==================
-            # 构建vvp仿真命令
-            sim_cmd = ["vvp", "-n", VVP_OUTPUT_FILE]  # -n: 非交互模式
+            # 构建仿真命令
+            sim_cmd = ["vvp", "-n", VVP_OUTPUT_FILE]
             
             try:
                 # 执行仿真（带超时）
@@ -249,7 +235,7 @@ def run_functional_correctness():
 
             # ================== 结果分析 ==================
             # 检查输出中是否包含成功标识
-            # ResBench数据集使用"All tests passed"或"Your Design Passed"作为成功标识
+            # RTLLM数据集使用 "All tests passed" 或 "Your Design Passed" 作为成功标识
             test_passed = ("All tests passed" in output_log or 
                           "Your Design Passed" in output_log)
 
@@ -259,9 +245,9 @@ def run_functional_correctness():
                 module_results[module_name]["passed"] += 1
             else:
                 # 测试失败，记录详细错误信息
-                if error_log and error_log.strip() and "超时" not in error_log:
+                if error_log and error_log != "":
                     solution_entry["pass"] = f"仿真错误: {error_log.strip()}"
-                elif "超时" in output_log or "超时" in error_log:
+                elif "超时" in output_log:
                     solution_entry["pass"] = "测试失败: 仿真超时"
                 else:
                     solution_entry["pass"] = "测试失败: 未通过测试用例"
@@ -294,9 +280,9 @@ def run_functional_correctness():
     total_pass_at_k = 0
     
     print(f"\n各模块详细结果 (pass@{k_value}):")
-    print("-" * 70)
-    print(f"{'模块名':<25} {'通过/总数':<12} {'通过率':<10} {'pass@k':<10}")
-    print("-" * 70)
+    print("-" * 60)
+    print(f"{'模块名':<20} {'通过/总数':<12} {'通过率':<10} {'pass@k':<10}")
+    print("-" * 60)
     
     for module_name, result in sorted(module_results.items()):
         n = result["total"]          # 总样本数
@@ -309,19 +295,13 @@ def run_functional_correctness():
             total_modules += 1
             total_pass_at_k += pass_at_k
             
-            print(f"{module_name:<25} {c}/{n:<11} {pass_rate:<10.3f} {pass_at_k:<10.4f}")
+            print(f"{module_name:<20} {c}/{n:<11} {pass_rate:<10.3f} {pass_at_k:<10.4f}")
     
     # 计算并输出平均pass@k
-    print("-" * 70)
+    print("-" * 60)
     if total_modules > 0:
         avg_pass_at_k = total_pass_at_k / total_modules
         print(f"平均pass@{k_value} (共{total_modules}个模块): {avg_pass_at_k:.4f}")
-        
-        # 额外的统计信息
-        total_solutions = sum(result["total"] for result in module_results.values())
-        total_passed = sum(result["passed"] for result in module_results.values())
-        overall_pass_rate = total_passed / total_solutions if total_solutions > 0 else 0
-        print(f"总体通过率: {total_passed}/{total_solutions} = {overall_pass_rate:.4f}")
     else:
         print("没有可用的模块数据，无法计算平均pass@k")
     
@@ -338,12 +318,11 @@ if __name__ == "__main__":
     注意事项:
         1. 确保已安装iverilog仿真器
         2. 确保SOLUTIONS_FILE和PROBLEMS_FILE文件存在
-        3. 本版本专为ResBench数据集设计
-        4. 使用动态测试台模块名提取
-        5. 测试成功判断基于输出中的"All tests passed"或"Your Design Passed"
-        6. 程序会在当前目录生成临时文件，测试完成后会自动清理
+        3. 本版本使用动态测试台模块名提取
+        4. 测试成功判断基于输出中的"All tests passed"或"Your Design Passed"
+        5. 程序会在当前目录生成临时文件，测试完成后会自动清理
     """
-    print("ResBench Verilog功能正确性测试程序")
+    print("RTLLM v2 Verilog功能正确性测试程序")
     print("="*50)
     
     try:

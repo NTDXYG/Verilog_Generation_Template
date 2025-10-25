@@ -9,7 +9,7 @@
 - **代码生成**：支持通过API调用（OpenAI、DeepSeek等）和本地LLM生成Verilog代码
 - **自动化测试**：使用iverilog进行编译和仿真验证
 - **性能评估**：计算pass@k指标评估代码生成质量
-- **多数据集支持**：包含resbench和rtllm_v1_1两套测试数据集
+- **多数据集支持**：包含resbench/rtllm_v2/VerilogEval_v2三套测试数据集
 
 ## 🗂️ 项目结构
 
@@ -21,12 +21,17 @@ verilog_generate_template/
 │   ├── generate_api.py           # API调用生成脚本
 │   ├── generate_llm.py           # 本地LLM生成脚本
 │   └── problems_resbench.jsonl   # 问题数据集
-└── rtllm_v1_1/                 # RTLLM v1.1数据集
+└── rtllm_v2/                 # RTLLM v2数据集
     ├── functional_correctness.py  # 功能正确性测试脚本
     ├── generate_api.py           # API调用生成脚本
     ├── generate_llm.py           # 本地LLM生成脚本
-    ├── problems_rtllm.jsonl      # 问题数据集
+    ├── problems_rtllm_v2.jsonl      # 问题数据集
     └── test_file/               # 测试文件目录
+└── verilogeval_v2/                 # VerilogEval v2数据集
+    ├── functional_correctness.py  # 功能正确性测试脚本
+    ├── generate_api.py           # API调用生成脚本
+    ├── generate_llm.py           # 本地LLM生成脚本
+    └── problems_verilogeval_v2.jsonl   # 问题数据集
 ```
 
 ## 🛠️ 环境配置
@@ -63,10 +68,11 @@ verilog_generate_template/
 
 ### 1. 数据集选择
 
-项目包含两个数据集：
+项目包含3个数据集：
 
 - **resbench**：包含较简单的Verilog设计问题，如基本逻辑门、多路选择器等
-- **rtllm_v1_1**：包含更复杂的RTL级设计问题，如累加器、流水线加法器等
+- **rtllm_v2**：包含更复杂的RTL级设计问题，如累加器、流水线加法器等
+- **verilogeval_v2**：经典数据集
 
 ### 2. 代码生成
 
@@ -83,14 +89,13 @@ verilog_generate_template/
        "prompt_file": "problems_resbench.jsonl", # 问题文件
        "max_concurrent": 20,                     # 并发数
        "k": 5,                                   # 每个问题生成的解决方案数量
-       "output_file": "solutions.json"          # 输出文件名
    }
    ```
 
 2. **运行生成脚本**：
    ```bash
    # 进入对应数据集目录
-   cd resbench  # 或 cd rtllm_v1_1
+   cd resbench
    
    # 运行生成脚本
    python generate_api.py
@@ -106,7 +111,6 @@ verilog_generate_template/
        "model_path": "/path/to/your/model",      # 本地模型路径
        "model_name": "your_model_name",          # 模型名称
        "prompt_file": "problems_resbench.jsonl", # 问题文件
-       "output_file": "solutions_local.json",   # 输出文件名
        "k": 1                                    # 生成的解决方案数量
    }
    ```
@@ -114,7 +118,7 @@ verilog_generate_template/
 2. **运行生成脚本**：
    ```bash
    # 确保有足够的GPU显存
-   cd resbench  # 或 cd rtllm_v1_1
+   cd resbench
    python generate_llm.py
    ```
 

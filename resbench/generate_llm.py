@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from tqdm import tqdm
 from vllm import LLM, SamplingParams
 
+# 设置工作目录为当前文件所在目录
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 @dataclass
 class Problem:
@@ -92,10 +94,11 @@ def generate_solutions(config):
     all_solutions = generator.generate_solutions(all_problems, config["k"])
 
     # 保存结果
-    with open(config["output_file"], "w", encoding="utf-8") as f:
+    output_file_name = f"pass{config['k']}_{config['model_name']}.json"
+    with open(output_file_name, "w", encoding="utf-8") as f:
         json.dump(all_solutions, f, ensure_ascii=False, indent=4)
 
-    print(f"All solutions generated and saved to {config['output_file']}")
+    print(f"All solutions generated and saved to {output_file_name}")
 
 
 if __name__ == "__main__":
@@ -104,7 +107,6 @@ if __name__ == "__main__":
         "model_path": "/media/yg/E/models/Seed-Coder-8B-Instruct",  # Path to your local HF model
         "model_name": "seed_coder",  # Name to use in the JSON output
         "prompt_file": "problems_resbench.jsonl",
-        "output_file": "pass1_seed_coder.json",
         "k": 1  # Number of solutions to generate per problem
     }
     # Run only the generation part
