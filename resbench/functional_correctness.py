@@ -94,13 +94,14 @@ def run_functional_correctness():
     主要流程:
         1. 加载解决方案和问题数据
         2. 对每个解决方案进行编译和仿真测试
-        3. 记录测试结果和统计信息
-        4. 计算并输出pass@k指标
+        3. 记录测试结果和统计信息（包括语法正确性和功能正确性）
+        4. 计算并输出syntax pass@1和functional pass@k指标
         
     注意:
         - 使用动态测试台模块名提取
         - 通过检查输出中的"All tests passed"或"Your Design Passed"判断测试结果
         - 支持ResBench数据集格式
+        - 新增syntax pass@1统计（编译成功率）
     """
     print("开始加载数据文件...")
     
@@ -145,8 +146,12 @@ def run_functional_correctness():
     print(f"成功构建测试台映射，共{len(module_testbenches)}个模块")
 
     # ================== 初始化测试环境 ==================
-    # 用于统计pass@k结果
-    module_results = defaultdict(lambda: {"total": 0, "passed": 0})
+    # 用于统计语法正确性和功能正确性结果
+    module_results = defaultdict(lambda: {
+        "total": 0,           # 总样本数
+        "compiled": 0,        # 编译成功数（语法正确）
+        "passed": 0           # 功能测试通过数
+    })
     
     # 设置仿真超时时间（秒）
     timeout = 5
@@ -225,9 +230,14 @@ def run_functional_correctness():
 
             # 检查编译是否成功
             if compile_process.returncode != 0:
+                # 编译失败 - 语法错误
                 compile_error = compile_process.stderr.strip()
                 solution_entry["pass"] = f"编译失败: {compile_error}"
+                # 注意：编译失败时不增加compiled计数，但total已经计数了
                 continue
+            else:
+                # 编译成功 - 语法正确
+                module_results[module_name]["compiled"] += 1
 
             # ================== 仿真阶段 ==================
             # 构建vvp仿真命令
@@ -254,7 +264,7 @@ def run_functional_correctness():
                           "Your Design Passed" in output_log)
 
             if test_passed:
-                # 测试通过
+                # 测试通过 - 功能正确
                 solution_entry["pass"] = "true"
                 module_results[module_name]["passed"] += 1
             else:
@@ -278,7 +288,7 @@ def run_functional_correctness():
     clean_up_simulation()
     
     # ================== 计算和输出统计结果 ==================
-    print("\n" + "="*50)
+    print("\n" + "="*60)
     print("测试完成，正在计算统计结果...")
     
     # 确定k值（假设所有模块的解决方案数量相同）
@@ -289,43 +299,61 @@ def run_functional_correctness():
         print("错误: 没有找到任何解决方案，无法计算pass@k指标")
         return
     
-    # 计算每个模块的pass@k
+    # 计算各种指标
     total_modules = 0
-    total_pass_at_k = 0
+    total_syntax_pass_at_k = 0      # 语法正确性pass@k总和
+    total_functional_pass_at_k = 0   # 功能正确性pass@k总和
     
-    print(f"\n各模块详细结果 (pass@{k_value}):")
-    print("-" * 70)
-    print(f"{'模块名':<25} {'通过/总数':<12} {'通过率':<10} {'pass@k':<10}")
-    print("-" * 70)
+    print(f"\n各模块详细结果 (k={k_value}):")
+    print("-" * 90)
+    print(f"{'模块名':<20} {'编译/总数':<12} {'通过/编译':<12} {'语法pass@k':<12} {'功能pass@k':<12}")
+    print("-" * 90)
     
     for module_name, result in sorted(module_results.items()):
         n = result["total"]          # 总样本数
-        c = result["passed"]         # 通过样本数
+        c_syntax = result["compiled"] # 编译成功数（语法正确）
+        c_func = result["passed"]    # 功能测试通过数
         
         if n > 0:
-            pass_rate = c / n                              # 通过率
-            pass_at_k = calculate_pass_at_k(n, c, k_value) # pass@k值
+            # 计算语法正确性pass@k（基于编译成功）
+            syntax_pass_at_k = calculate_pass_at_k(n, c_syntax, k_value)
+            
+            # 计算功能正确性pass@k（基于功能测试通过）
+            functional_pass_at_k = calculate_pass_at_k(n, c_func, k_value)
             
             total_modules += 1
-            total_pass_at_k += pass_at_k
+            total_syntax_pass_at_k += syntax_pass_at_k
+            total_functional_pass_at_k += functional_pass_at_k
             
-            print(f"{module_name:<25} {c}/{n:<11} {pass_rate:<10.3f} {pass_at_k:<10.4f}")
+            print(f"{module_name:<20} {c_syntax}/{n:<11} {c_func}/{c_syntax:<11} {syntax_pass_at_k:<12.4f} {functional_pass_at_k:<12.4f}")
     
-    # 计算并输出平均pass@k
-    print("-" * 70)
+    # 计算并输出平均指标
+    print("-" * 90)
     if total_modules > 0:
-        avg_pass_at_k = total_pass_at_k / total_modules
-        print(f"平均pass@{k_value} (共{total_modules}个模块): {avg_pass_at_k:.4f}")
+        avg_syntax_pass_at_k = total_syntax_pass_at_k / total_modules
+        avg_functional_pass_at_k = total_functional_pass_at_k / total_modules
+        
+        print(f"平均语法pass@{k_value} (共{total_modules}个模块): {avg_syntax_pass_at_k:.4f}")
+        print(f"平均功能pass@{k_value} (共{total_modules}个模块): {avg_functional_pass_at_k:.4f}")
         
         # 额外的统计信息
         total_solutions = sum(result["total"] for result in module_results.values())
+        total_compiled = sum(result["compiled"] for result in module_results.values())
         total_passed = sum(result["passed"] for result in module_results.values())
-        overall_pass_rate = total_passed / total_solutions if total_solutions > 0 else 0
-        print(f"总体通过率: {total_passed}/{total_solutions} = {overall_pass_rate:.4f}")
+        
+        syntax_success_rate = total_compiled / total_solutions if total_solutions > 0 else 0
+        functional_success_rate = total_passed / total_solutions if total_solutions > 0 else 0
+        conditional_functional_rate = total_passed / total_compiled if total_compiled > 0 else 0
+        
+        print(f"\n总体统计:")
+        print(f"  语法正确率: {total_compiled}/{total_solutions} = {syntax_success_rate:.4f}")
+        print(f"  整体功能正确率: {total_passed}/{total_solutions} = {functional_success_rate:.4f}")
+        # print(f"  条件功能正确率: {total_passed}/{total_compiled} = {conditional_functional_rate:.4f}")
+        # print(f"  (条件功能正确率 = 在编译成功的前提下，功能测试通过的比例)")
     else:
         print("没有可用的模块数据，无法计算平均pass@k")
     
-    print("="*50)
+    print("="*60)
     print("所有测试已完成！")
 
 if __name__ == "__main__":
@@ -342,9 +370,14 @@ if __name__ == "__main__":
         4. 使用动态测试台模块名提取
         5. 测试成功判断基于输出中的"All tests passed"或"Your Design Passed"
         6. 程序会在当前目录生成临时文件，测试完成后会自动清理
+        7. 新增语法正确性统计，提供syntax pass@1和functional pass@k两个指标
     """
-    print("ResBench Verilog功能正确性测试程序")
-    print("="*50)
+    print("ResBench Verilog功能正确性测试程序 (增强版)")
+    print("="*60)
+    print("本程序将计算以下指标:")
+    print("  - Syntax Pass@k: 语法正确性（编译成功率）")
+    print("  - Functional Pass@k: 功能正确性（测试通过率）")
+    print("="*60)
     
     try:
         run_functional_correctness()
